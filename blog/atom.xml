@@ -2,11 +2,23 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://reantoilpc.github.io/blog</id>
     <title>My Site Blog</title>
-    <updated>2021-08-26T00:00:00.000Z</updated>
+    <updated>2022-05-31T00:00:00.000Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://reantoilpc.github.io/blog"/>
     <subtitle>My Site Blog</subtitle>
     <icon>https://reantoilpc.github.io/img/favicon.ico</icon>
+    <entry>
+        <title type="html"><![CDATA[Postman Set Environment Variable]]></title>
+        <id>postman-set-environment-variable</id>
+        <link href="https://reantoilpc.github.io/blog/postman-set-environment-variable"/>
+        <updated>2022-05-31T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[Postman 是一套測試 API 工具，可以設定 Environment Variable]]></summary>
+        <content type="html"><![CDATA[<p>Postman 是一套測試 API 工具，可以設定 Environment Variable</p>]]></content>
+        <author>
+            <name>Ray Hsu</name>
+            <uri>https://github.com/reantoilpc</uri>
+        </author>
+    </entry>
     <entry>
         <title type="html"><![CDATA[Welcome]]></title>
         <id>welcome</id>

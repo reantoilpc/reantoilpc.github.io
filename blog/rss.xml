@@ -4,9 +4,17 @@
         <title>My Site Blog</title>
         <link>https://reantoilpc.github.io/blog</link>
         <description>My Site Blog</description>
-        <lastBuildDate>Thu, 26 Aug 2021 00:00:00 GMT</lastBuildDate>
+        <lastBuildDate>Tue, 31 May 2022 00:00:00 GMT</lastBuildDate>
         <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
         <generator>https://github.com/jpmonette/feed</generator>
+        <item>
+            <title><![CDATA[Postman Set Environment Variable]]></title>
+            <link>https://reantoilpc.github.io/blog/postman-set-environment-variable</link>
+            <guid>postman-set-environment-variable</guid>
+            <pubDate>Tue, 31 May 2022 00:00:00 GMT</pubDate>
+            <description><![CDATA[Postman 是一套測試 API 工具，可以設定 Environment Variable]]></description>
+            <content:encoded><![CDATA[<p>Postman 是一套測試 API 工具，可以設定 Environment Variable</p>]]></content:encoded>
+        </item>
         <item>
             <title><![CDATA[Welcome]]></title>
             <link>https://reantoilpc.github.io/blog/welcome</link>
