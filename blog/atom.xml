@@ -8,12 +8,13 @@
     <subtitle>My Site Blog</subtitle>
     <icon>https://reantoilpc.github.io/img/favicon.ico</icon>
     <entry>
-        <title type="html"><![CDATA[Postman Set Environment Variable]]></title>
+        <title type="html"><![CDATA[Postman Environment Variable]]></title>
         <id>postman-set-environment-variable</id>
         <link href="https://reantoilpc.github.io/blog/postman-set-environment-variable"/>
         <updated>2022-05-31T00:00:00.000Z</updated>
-        <summary type="html"><![CDATA[Postman 是一套測試 API 工具，可以設定 Environment Variable]]></summary>
-        <content type="html"><![CDATA[<p>Postman 是一套測試 API 工具，可以設定 Environment Variable</p>]]></content>
+        <summary type="html"><![CDATA[Postman Environment Variable]]></summary>
+        <content type="html"><![CDATA[<h2>Postman Environment Variable</h2><p>Postman 是一套測試 API 工具，藉著 Environment Variable 的設定，可以很方便切換環境，進行 API 功能驗證，概念很像 asp.net 的 appsettings，只要設定好要置換的內容，就可以使用。</p><h2>Environment Variable 設定</h2><ul><li>設定不同環境，使用相同參數
+<!-- -->![image info]<!-- -->(./pictures/2022-05-31-01-environment variable setting.png)</li></ul>]]></content>
         <author>
             <name>Ray Hsu</name>
             <uri>https://github.com/reantoilpc</uri>
