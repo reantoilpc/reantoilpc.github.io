@@ -8,13 +8,14 @@
     <subtitle>My Site Blog</subtitle>
     <icon>https://reantoilpc.github.io/img/favicon.ico</icon>
     <entry>
-        <title type="html"><![CDATA[Postman Environment Variable]]></title>
-        <id>postman-set-environment-variable</id>
-        <link href="https://reantoilpc.github.io/blog/postman-set-environment-variable"/>
+        <title type="html"><![CDATA[Postman 環境變數設定]]></title>
+        <id>postman-environment-variable</id>
+        <link href="https://reantoilpc.github.io/blog/postman-environment-variable"/>
         <updated>2022-05-31T00:00:00.000Z</updated>
-        <summary type="html"><![CDATA[Postman Environment Variable]]></summary>
-        <content type="html"><![CDATA[<h2>Postman Environment Variable</h2><p>Postman 是一套測試 API 工具，藉著 Environment Variable 的設定，可以很方便切換環境，進行 API 功能驗證，概念很像 asp.net 的 appsettings，只要設定好要置換的內容，就可以使用。</p><h2>Environment Variable 設定</h2><ul><li>設定不同環境，使用相同參數名稱
-<img src="./pictures/2022-05-31-01-environment-variable-setting.png" alt="image"/></li></ul>]]></content>
+        <summary type="html"><![CDATA[Postman Environment Variable 簡介]]></summary>
+        <content type="html"><![CDATA[<h2>Postman Environment Variable 簡介</h2><p>Postman 是一套測試 API 工具，藉著 Environment Variable 的設定，可以很方便切換環境，進行 API 功能驗證，概念很像 asp.net 的 appsettings，只要設定好要置換的內容，就可以使用。</p><h2>Environment Variable 設定</h2><ul><li>在 Environment 設定不同環境</li></ul><p><img src="./pictures/2022-05-31/2022-05-31-environment-variable-01.png" alt="image"/></p><ul><li>設定 Variable Name 和 Value</li></ul><p><img src="./pictures/2022-05-31/2022-05-31-environment-variable-02.png" alt="image"/></p><ul><li>使用 Variable 取代原本 Api Url</li></ul><p><img src="./pictures/2022-05-31/2022-05-31-environment-variable-03.png" alt="image"/></p><h2>透過 Response 回寫 Environment Variable</h2><p>使用 Postman 測試 API 會要使用 AccessToken 進行權限的驗證，因此在測試前需要先登入取得 AccessToken 然後複製貼上 Auth 對應欄位，有幾支 API 就要複製幾次，非常麻煩，因此可以透過 Environment Variable 簡化重複貼上的動作。</p><ul><li>先設定 AccessToken 變數，放在 Auth 對應欄位</li></ul><p><img src="./pictures/2022-05-31/2022-05-31-environment-variable-04.png" alt="image"/></p><ul><li>在取得 AccessToken API 的 Tests 裡輸入 Javascript 語法，當成功取得 AccessToken 回寫 Environment Variable</li></ul><p><img src="./pictures/2022-05-31/2022-05-31-environment-variable-05.png" alt="image"/></p><pre><code class="language-javascript">var jsonData = JSON.parse(responseBody);
+pm.environment.set(&quot;AccessToken&quot;, jsonData);
+</code></pre>]]></content>
         <author>
             <name>Ray Hsu</name>
             <uri>https://github.com/reantoilpc</uri>
