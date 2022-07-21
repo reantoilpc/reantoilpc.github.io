@@ -19,8 +19,8 @@ if (actionStatus == &quot;A&quot;) { retrun &quot;新增&quot;; }
 if (actionStatus == &quot;D&quot;) { retrun &quot;刪除&quot;; }
 if (actionStatus == &quot;U&quot;) { retrun &quot;更新&quot;; }
 
-</code></pre><h3>壞味道（Bad Smell）</h3><p>為什麼HardCode方式，會有壞味道（Bad Smell）出現呢?
-因為當<code>actionStatus</code>又增加一種類型，例如<code>Q</code>查詢，勢必就要加一行程式，這樣就違反開放封閉原則</p><h3>改善方式</h3><p>即然要解決HardCode問題，就要把<code>A</code>、<code>D</code>、<code>U</code>的定義要移到另一個Class或是Enum上面，而不是散落在各程式碼裡。目前想到有二個套件，可以解決我的問題</p><ol><li><a href="https://github.com/ardalis/SmartEnum">SmartEnum</a></li><li><a href="https://github.com/TylerBrinkley/Enums.NET">Enums.NET</a></li></ol><p>後來決定使用Enums.NET，原因是</p><ul><li>因為舊的專案已經在使用Enum，如果導入<code>SmartEnum</code>新的做法造成維護上的混亂。</li><li>Enums.NET比較類似原有的Enum的使用方式，比較容易理解。</li></ul><h4>先建立<code>SymbolAttribute</code>和<code>ActionStatusEnum</code></h4><pre><code class="language-C#">
+</code></pre><h2>壞味道（Bad Smell）</h2><p>為什麼HardCode方式，會有壞味道（Bad Smell）出現呢?
+因為當<code>actionStatus</code>又增加一種類型，例如<code>Q</code>查詢，勢必就要加一行程式，這樣就違反開放封閉原則</p><h2>改善方式</h2><p>即然要解決HardCode問題，就要把<code>A</code>、<code>D</code>、<code>U</code>的定義要移到另一個Class或是Enum上面，而不是散落在各程式碼裡。目前想到有二個套件，可以解決我的問題</p><ol><li><a href="https://github.com/ardalis/SmartEnum">SmartEnum</a></li><li><a href="https://github.com/TylerBrinkley/Enums.NET">Enums.NET</a></li></ol><p>後來決定使用Enums.NET，原因是</p><ul><li>因為舊的專案已經在使用Enum，如果導入<code>SmartEnum</code>新的做法造成維護上的混亂。</li><li>Enums.NET比較類似原有的Enum的使用方式，比較容易理解。</li></ul><h2>先建立<code>SymbolAttribute</code>和<code>ActionStatusEnum</code></h2><pre><code class="language-C#">
 // SymbolAttribute
 [AttributeUsage(AttributeTargets.Field)]
 public class SymbolAttribute : Attribute
@@ -49,7 +49,7 @@ public enum ActionStatusEnum
     Update
 }
 
-</code></pre><h4>使用<code>Enums.NET</code>取得文字說明</h4><pre><code class="language-C#">
+</code></pre><h2>使用<code>Enums.NET</code>取得文字說明</h2><pre><code class="language-C#">
 // Get SymbolAttribute Format
 var symbolFormat = Enums.RegisterCustomEnumFormat(x =&gt; x.Attributes.Get&lt;SymbolAttribute&gt;()?.Symbol);
 
