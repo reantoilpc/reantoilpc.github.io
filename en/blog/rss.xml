@@ -4,9 +4,63 @@
         <title>My Site Blog</title>
         <link>https://reantoilpc.github.io/en/blog</link>
         <description>My Site Blog</description>
-        <lastBuildDate>Tue, 31 May 2022 00:00:00 GMT</lastBuildDate>
+        <lastBuildDate>Thu, 21 Jul 2022 00:00:00 GMT</lastBuildDate>
         <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
         <generator>https://github.com/jpmonette/feed</generator>
+        <item>
+            <title><![CDATA[Enums.NET 使用]]></title>
+            <link>https://reantoilpc.github.io/en/blog/2022-07-21-nuget-package-Enums.NET</link>
+            <guid>2022-07-21-nuget-package-Enums.NET</guid>
+            <pubDate>Thu, 21 Jul 2022 00:00:00 GMT</pubDate>
+            <description><![CDATA[使用原因]]></description>
+            <content:encoded><![CDATA[<h2>使用原因</h2><p>最近在協助團隊在舊的專案底下開發新 API 功能，該功能是從資料庫取得資料後，經過過濾和整理再回傳前端頁面。
+目前遇到一個小問題，該資料的某個欄位存的是<code>A</code>、<code>D</code>、<code>U</code>在前端頁面顯示分別新增、刪除、修改，在顯示上都需要<code>HardCode</code>處理，這樣的寫法造成程式碼的<code>壞味道（Bad Smell）</code>出現。</p><pre><code class="language-C#">
+if (actionStatus == &quot;A&quot;) { retrun &quot;新增&quot;; }
+if (actionStatus == &quot;D&quot;) { retrun &quot;刪除&quot;; }
+if (actionStatus == &quot;U&quot;) { retrun &quot;更新&quot;; }
+
+</code></pre><h3>壞味道（Bad Smell）</h3><p>為什麼HardCode方式，會有壞味道（Bad Smell）出現呢?
+因為當<code>actionStatus</code>又增加一種類型，例如<code>Q</code>查詢，勢必就要加一行程式，這樣就違反開放封閉原則</p><h3>改善方式</h3><p>即然要解決HardCode問題，就要把<code>A</code>、<code>D</code>、<code>U</code>的定義要移到另一個Class或是Enum上面，而不是散落在各程式碼裡。目前想到有二個套件，可以解決我的問題</p><ol><li><a href="https://github.com/ardalis/SmartEnum">SmartEnum</a></li><li><a href="https://github.com/TylerBrinkley/Enums.NET">Enums.NET</a></li></ol><p>後來決定使用Enums.NET，原因是</p><ul><li>因為舊的專案已經在使用Enum，如果導入<code>SmartEnum</code>新的做法造成維護上的混亂。</li><li>Enums.NET比較類似原有的Enum的使用方式，比較容易理解。</li></ul><h4>先建立<code>SymbolAttribute</code>和<code>ActionStatusEnum</code></h4><pre><code class="language-C#">
+// SymbolAttribute
+[AttributeUsage(AttributeTargets.Field)]
+public class SymbolAttribute : Attribute
+{
+    public string Symbol { get; }
+
+    public SymbolAttribute(string symbol)
+    {
+        Symbol = symbol;
+    }
+}
+
+// ActionStatusEnum
+public enum ActionStatusEnum
+{
+    [Symbol(&quot;A&quot;)]
+    [Description(&quot;新增&quot;)]
+    Add,
+
+    [Symbol(&quot;D&quot;)]
+    [Description(&quot;刪除&quot;)]
+    Delete,
+
+    [Symbol(&quot;U&quot;)]
+    [Description(&quot;更新&quot;)]
+    Update
+}
+
+</code></pre><h4>使用<code>Enums.NET</code>取得文字說明</h4><pre><code class="language-C#">
+// Get SymbolAttribute Format
+var symbolFormat = Enums.RegisterCustomEnumFormat(x =&gt; x.Attributes.Get&lt;SymbolAttribute&gt;()?.Symbol);
+
+// Return Description
+if (Enums.TryParse&lt;ActionStatusEnum&gt;(actionStatus, false, out var status, symbolFormat))
+{
+    return status.AsString(EnumFormat.Description);
+}
+
+</code></pre>]]></content:encoded>
+        </item>
         <item>
             <title><![CDATA[Postman 環境變數設定]]></title>
             <link>https://reantoilpc.github.io/en/blog/postman-environment-variable</link>
