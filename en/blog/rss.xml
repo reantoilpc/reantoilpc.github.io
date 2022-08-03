@@ -4,9 +4,75 @@
         <title>My Site Blog</title>
         <link>https://reantoilpc.github.io/en/blog</link>
         <description>My Site Blog</description>
-        <lastBuildDate>Thu, 21 Jul 2022 00:00:00 GMT</lastBuildDate>
+        <lastBuildDate>Tue, 02 Aug 2022 00:00:00 GMT</lastBuildDate>
         <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
         <generator>https://github.com/jpmonette/feed</generator>
+        <item>
+            <title><![CDATA[Produces Attribute 全域設定]]></title>
+            <link>https://reantoilpc.github.io/en/blog/2022-08-02-global-produces-attribute</link>
+            <guid>2022-08-02-global-produces-attribute</guid>
+            <pubDate>Tue, 02 Aug 2022 00:00:00 GMT</pubDate>
+            <description><![CDATA[Application model]]></description>
+            <content:encoded><![CDATA[<h2>Application model</h2><p>Application Model 定義 MVC 應用中各種對象和行為，包含Application、Controller、Action、Parameter、Router、Page、Property、Filter等等，上述的功能可以透過<code>慣例</code>(convention)來擴充客製自己的需求，並設定全域或屬性來使用</p><p>ASP.NET Core MVC 透過 IApplicationModelProvider 定義擴充的類別來載入應用程式，官方建議沒有特別需求，盡量不使用<code>provider pattern</code>而是使用<code>conventions</code>進行功能擴充</p><h2>實作 ProduceResponseTypeModelConvention</h2><p>在網路上查到的程式範例都是繼承<code>IApplicationModelProvider</code>因此我改用<code>IApplicationModelConvention</code>來實作，範例如下</p><pre><code class="language-C#">
+public class ProduceResponseTypeModelConvention : IApplicationModelConvention
+{
+    public void Apply(ApplicationModel application)
+    {
+        foreach (var controller in application.Controllers)
+        {
+            foreach (var action in controller.Actions)
+            {
+                Type? returnType = null;
+                if (action.ActionMethod.ReturnType.GenericTypeArguments.Any())
+                {
+                    if (action.ActionMethod.ReturnType.GenericTypeArguments[0].GetGenericArguments().Any())
+                    {
+                        returnType = action.ActionMethod.ReturnType.GenericTypeArguments[0].GetGenericArguments()[0];
+                    }
+                }
+
+                AddUniversalStatusCodes(action, returnType);
+                
+                var actionParametersExist = action.Parameters.Any();
+                if (actionParametersExist)
+                {
+                    AddProducesResponseTypeAttribute(action, typeof(void), StatusCodes.Status404NotFound);
+                }
+            }
+        }
+
+        void AddUniversalStatusCodes(ActionModel action, Type? returnType)
+        {
+            AddProducesResponseTypeAttribute(action, returnType, StatusCodes.Status200OK);
+            AddProducesResponseTypeAttribute(
+                action, typeof(ExceptionResponse), StatusCodes.Status500InternalServerError);
+        }
+
+        void AddProducesResponseTypeAttribute(ActionModel action, Type? returnType, int statusCodeResult)
+        {
+            if (returnType != null)
+            {
+                action.Filters.Add(new ProducesResponseTypeAttribute(returnType, statusCodeResult));
+            }
+            else if (returnType is null)
+            {
+                action.Filters.Add(new ProducesResponseTypeAttribute(statusCodeResult));
+            }
+        }
+    }
+}
+
+</code></pre><pre><code class="language-C#">
+// 擴充功能注入
+service.AddControllers(options =&gt;
+{
+    options.Conventions.Add(new ProduceResponseTypeModelConvention());
+})
+
+</code></pre><h2>參考資料來源</h2><p><a href="https://docs.microsoft.com/en-us/aspnet/core/mvc/controllers/application-model?view=aspnetcore-6.0">官方文件說明</a>
+<a href="https://www.cnblogs.com/hohoa/p/12134019.html">在Asp.Net Core中使用ModelConvention实现全局过滤器隔离</a>
+<a href="https://stackoverflow.com/questions/58047020/net-core-api-make-producesresponsetype-global-parameter-or-automate">Net Core API: Make ProducesResponseType Global Parameter or Automate</a></p>]]></content:encoded>
+        </item>
         <item>
             <title><![CDATA[Enums.NET 使用]]></title>
             <link>https://reantoilpc.github.io/en/blog/2022-07-21-nuget-package-Enums.NET</link>
