@@ -4,9 +4,125 @@
         <title>My Site Blog</title>
         <link>https://reantoilpc.github.io/en/blog</link>
         <description>My Site Blog</description>
-        <lastBuildDate>Tue, 02 Aug 2022 00:00:00 GMT</lastBuildDate>
+        <lastBuildDate>Wed, 17 Aug 2022 00:00:00 GMT</lastBuildDate>
         <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
         <generator>https://github.com/jpmonette/feed</generator>
+        <item>
+            <title><![CDATA[efcore 使用介紹]]></title>
+            <link>https://reantoilpc.github.io/en/blog/2022-08-17-efcore-guide</link>
+            <guid>2022-08-17-efcore-guide</guid>
+            <pubDate>Wed, 17 Aug 2022 00:00:00 GMT</pubDate>
+            <description><![CDATA[EFCore 建議寫法]]></description>
+            <content:encoded><![CDATA[<h2>EFCore 建議寫法</h2><h3>Repository 回傳</h3><p>Repository 設計概念，希望透過傳入條件值篩選資料出來。如果單純查詢一個資料表這樣寫法沒有問題，但通常在顯示或是處理資料，不會只有查一個資料表，往往都要查詢好幾個資料表，進行 Join 後才是我們要的結果。</p><p>如果 Repository 回傳是 IEnumerable、List、Array 這些類型，等同於立刻執行一段 SQL 語法，意思就是 Join 幾個資料表就執行幾次 SQL 語法，這樣寫法是很消耗資料庫效能，而且執行效率也比較慢，因為是分別 Query 資料表並沒有使用到 SQL Join 功能。</p><p>在 EFCore 可以使用 IQueryable 進行延遲執行取得資料，意思就是無論 Join 幾個資料表，都還不會Query 資料表，而是等到 ToListAsync ，EFCore 才會產生相對應的 SQL 語法，這時候就會組出 SQL Join 語法，好處就是只對資料庫查詢一次、而且是篩選過的資料，在網路傳輸也會比較快一些。</p><pre><code class="language-C#">    // Bad
+    public IEnumerable&lt;EpkAccAccount&gt; Find(Expression&lt;Func&lt;EpkAccAccount, bool&gt;&gt; expression)
+    {
+        return _context.EpkAccAccount.Where(expression);
+    }
+
+    // Good
+    public IQueryable&lt;EpkAccAccount&gt; FindAsync(Expression&lt;Func&lt;EpkAccAccount, bool&gt;&gt; expression)
+    {
+        return expression == null ? _context.EpkAccAccount : _context.EpkAccAccount.Where(expression);
+    }    
+</code></pre><h3>Select 必要欄位</h3><p>使用 SQL 查詢，官方不建議 <code>select * from table</code> 查出所有欄位，只要針對需要欄位就可以。使用 EFCore 也是如此，如果不指定欄位，直接回傳 Entity 就會把所有欄位查詢出來。</p><p>建議在查詢時候，針對必要欄位查詢就可以，才不會造成非必要查詢效能浪費。</p><pre><code class="language-C#">
+    // Bad
+    var epkAccId = &quot;6006746649&quot;;
+    IEnumerable&lt;EpkAccAccount&gt; epkAccAccount = _context.EpkAccAccount.Where(x =&gt; x.EpkAccId == epkAccId).ToListAsync();
+
+    // Good
+    var epkAccId = &quot;6006746649&quot;;
+    IEnumerable&lt;AccountDto&gt; accountDto = _context.EpkAccAccount
+                                        .Where(x =&gt; x.EpkAccId == epkAccId)
+                                        .Select(x =&gt; new AccountDto 
+                                        { 
+                                            EpkAccId = x.EpkAccId, Lpr = x.Lpr, IdNo = x.IdNo 
+                                        })
+                                        .ToListAsync();
+
+</code></pre><h3>Like 查詢</h3><p>在 EFCore Link 查詢，不建議使用 <code>StartsWith</code>, <code>EndsWith</code>, <code>Contains</code> 這幾個關鍵字查詢，EFCore 並不會轉換成 SQL Like，反而會轉換使用 SQL 函數查詢，雖然查詢結果一樣，但當資料量大時，查詢的效率就會變差。</p><p>在 EFCore 使用 <code>StartsWith</code>, <code>EndsWith</code>, <code>Contains</code> 關鍵字查詢，對應產生 SQL 語法</p><pre><code class="language-SQL">
+    -- Contains
+    SELECT [traTx].[TRA_TX_ID], [traTx].[CHANNEL_CODE], [traTx].[TRANSACTION_TIME]
+    FROM [EPK_ACC_TRA_TX] AS [traTx]
+    WHERE CHARINDEX(&#x27;P96&#x27;, [traTx].[CHANNEL_CODE]) &gt; 0 OR &#x27;P96&#x27; = N&#x27;&#x27;
+
+    -- StartsWith
+    SELECT [traTx].[TRA_TX_ID], [traTx].[CHANNEL_CODE], [traTx].[TRANSACTION_TIME]
+    FROM [EPK_ACC_TRA_TX] AS [traTx]
+    WHERE LEFT([traTx].[CHANNEL_CODE], LEN(&#x27;P96&#x27;)) = &#x27;P96&#x27; OR &#x27;P96&#x27; = N&#x27;&#x27;
+
+    -- EndsWith
+    SELECT [traTx].[TRA_TX_ID], [traTx].[CHANNEL_CODE], [traTx].[TRANSACTION_TIME]
+    FROM [EPK_ACC_TRA_TX] AS [traTx]
+    WHERE RIGHT([traTx].[CHANNEL_CODE], LEN(&#x27;P96&#x27;)) = &#x27;P96&#x27; OR &#x27;P96&#x27; = N&#x27;&#x27;
+
+</code></pre><p>如果要 Like 查詢，請要改用 <code>EF.Functions</code> 來查詢。</p><pre><code class="language-C#">    // Bad
+    var channelCode = &quot;P96&quot;;
+    _context.EpkAccTraTx.Where(x =&gt; x.ChannelCode.StartsWith(channelCode));
+
+    // Good
+    var channelCode = &quot;P96&quot;;
+    _context.EpkAccTraTx.Where(x =&gt; EF.Functions.Like(x.ChannelCode, $&quot;{channelCode}%&quot;));   
+</code></pre><h3>Inner Join</h3><pre><code class="language-C#">
+    var smsHistories = _context.EpkAccSmshistory;
+    var traTxs = _context.EpkAccTraTx;
+
+    var traNoticeViews = await
+    (
+        from sms in smsHistories join traTx in traTxs on sms.TraTxId equals traTx.TraTxId
+        where traTx.ServiceId == 6 &amp;&amp; traTx.TransactionCode == &quot;01&quot; 
+        select new TraNoticeView
+        {
+            ChannelCode = traTx.ChannelCode,
+            OpenFilter = sms.OpenFilter,
+            TransactionDate = traTx.TransactionTime.Date,
+            Filter = sms.Filter
+        }
+    ).ToListAsync();
+
+</code></pre><h3>Left Join</h3><pre><code class="language-C#">
+    var smsHistories = _context.EpkAccSmshistory;
+    var traTxs = _context.EpkAccTraTx;
+
+    var traNoticeViews = await
+    (
+        from sms in smsHistories join traTx in traTxs on sms.TraTxId equals traTx.TraTxId into histories
+        from sms in histories.DefaultIfEmpty()
+        where traTx.ServiceId == 6 &amp;&amp; traTx.TransactionCode == &quot;01&quot; 
+        select new TraNoticeView
+        {
+            ChannelCode = traTx.ChannelCode,
+            OpenFilter = sms.OpenFilter,
+            TransactionDate = traTx.TransactionTime.Date,
+            Filter = sms.Filter
+        }
+    ).ToListAsync();
+
+</code></pre><h3>Group By</h3><pre><code class="language-C#">    var smsHistories = _context.EpkAccSmshistory;
+    var traTxs = _context.EpkAccTraTx;
+
+    var traNoticeViews = await
+    (
+        from sms in smsHistories join traTx in traTxs on sms.TraTxId equals traTx.TraTxId into histories
+        from sms in histories.DefaultIfEmpty()
+        where traTx.ServiceId == 6 &amp;&amp; traTx.TransactionCode == &quot;01&quot; 
+        select new TraNoticeView
+        {
+            ChannelCode = traTx.ChannelCode,
+            OpenFilter = sms.OpenFilter,
+            TransactionDate = traTx.TransactionTime.Date,
+            Filter = sms.Filter
+        }
+    )
+    .GroupBy(x =&gt; new {x.TransactionDate, x.Filter})
+    .ToDictionaryAsync(x =&gt; x.Key, x =&gt; new TraNoticeArrivalCount
+    {
+        TransactionDate = x.Key.TransactionDate,
+        Filter = x.Key.Filter,
+        ArrivalCount = x.Count()
+    });
+                             
+</code></pre>]]></content:encoded>
+        </item>
         <item>
             <title><![CDATA[Produces Attribute 全域設定]]></title>
             <link>https://reantoilpc.github.io/en/blog/2022-08-02-global-produces-attribute</link>
