@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkwebsite=self.webpackChunkwebsite||[]).push([[5583],{2865:e=>{e.exports=JSON.parse('{"allTagsPath":"/en/blog/tags","slug":"/en/blog/tags/mini-profiler","name":"miniProfiler","count":1,"permalink":"/en/blog/tags/mini-profiler"}')}}]);
