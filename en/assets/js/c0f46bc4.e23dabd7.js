@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkwebsite=self.webpackChunkwebsite||[]).push([[7586],{8212:e=>{e.exports=JSON.parse('{"allTagsPath":"/en/blog/tags","slug":"/en/blog/tags/efcore","name":"efcore","count":2,"permalink":"/en/blog/tags/efcore"}')}}]);

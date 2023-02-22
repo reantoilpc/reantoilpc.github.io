@@ -4,9 +4,46 @@
         <title>My Site Blog</title>
         <link>https://reantoilpc.github.io/en/blog</link>
         <description>My Site Blog</description>
-        <lastBuildDate>Thu, 29 Dec 2022 00:00:00 GMT</lastBuildDate>
+        <lastBuildDate>Wed, 22 Feb 2023 00:00:00 GMT</lastBuildDate>
         <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
         <generator>https://github.com/jpmonette/feed</generator>
+        <item>
+            <title><![CDATA[建立 visual studio multiple project template]]></title>
+            <link>https://reantoilpc.github.io/en/blog/2023-02-22-Create-Multiple-Project-Template</link>
+            <guid>2023-02-22-Create-Multiple-Project-Template</guid>
+            <pubDate>Wed, 22 Feb 2023 00:00:00 GMT</pubDate>
+            <description><![CDATA[起因]]></description>
+            <content:encoded><![CDATA[<h2>起因</h2><p>隨著工作的經驗增加，接手的案子也越來越多，每個案子使用系統的架構大同小異，但每次開一個新的案子，都需要重新設定或是重新安裝套件，雖然只有一開始才需要設定，但幾次下來也是花了不少時間。</p><p>因此這次打算使用 visual studio 匯出專案功能來建立系統範本，使用範本可以大大減少初始系統的設定和安裝套件的時間。</p><h2>專案匯出</h2><ul><li>先建立要使用的系統架構，並安裝相關套件</li></ul><p><img src="./pictures/2023-02-22/2023-02-22-create-project.png" alt="image"/></p><ul><li>轉換成專案範本，namespace 要使用系統名稱</li></ul><pre><code class="language-CSharp">
+// 原本的 namepspace
+namespace PMP.EdgeService.Api.Controllers;
+
+// 使用範本命名 
+namespace $ext_safeprojectname$.Controllers;
+
+</code></pre><p><a href="https://learn.microsoft.com/en-us/visualstudio/ide/template-parameters?view=vs-2022">參數相關設定</a></p><p><img src="./pictures/2023-02-22/2023-02-22-setting-namespace.png" alt="image"/></p><ul><li>選擇專案匯出範本</li></ul><p><img src="./pictures/2023-02-22/2023-02-22-export-project.png" alt="image"/></p><p><img src="./pictures/2023-02-22/2023-02-22-select-project.png" alt="image"/></p><ul><li>預設 Automatically Import the template into visual studio 打勾要取消，不要打勾</li></ul><p><img src="./pictures/2023-02-22/2023-02-22-setting-template.png" alt="image"/></p><p>匯出的 zip 檔，預設路徑為 <code>C:\Users\{使用者名稱}\Documents\Visual Studio 2022\Templates\ProjectTemplates</code></p><p><img src="./pictures/2023-02-22/2023-02-22-template-path.png" alt="image"/></p><h2>設定 template 設定</h2><ul><li>新增一個資料夾，把匯出各別專案範本 zip 檔解壓縮後放置進去。</li><li>建立系統範本的設定檔，副檔名為<code>vstemplate</code></li></ul><p><img src="./pictures/2023-02-22/2023-02-22-create-vstemplate.png" alt="image"/></p><ul><li>系統範本的設定檔內容如下</li></ul><pre><code class="language-xml">
+&lt;VSTemplate xmlns=&quot;http://schemas.microsoft.com/developer/vstemplate/2005&quot; Version=&quot;3.0.0&quot; Type=&quot;ProjectGroup&quot;&gt;
+    &lt;TemplateData&gt;
+        &lt;Name&gt;Web Template&lt;/Name&gt;
+        &lt;Description&gt;Project template creating ASP.NET 6 web apps and web APIs for windows, Lunix, macOS &lt;/Description&gt;
+        &lt;ProjectType&gt;CSharp&lt;/ProjectType&gt;
+        &lt;LanguageTag&gt;C#&lt;/LanguageTag&gt;
+        &lt;PlatformTag&gt;Windows&lt;/PlatformTag&gt;
+        &lt;ProjectTypeTag&gt;Web&lt;/ProjectTypeTag&gt;
+        &lt;CreateNewFolder&gt;true&lt;/CreateNewFolder&gt;
+        &lt;LocationField&gt;Enabled&lt;/LocationField&gt;
+    &lt;/TemplateData&gt;
+    &lt;TemplateContent&gt;
+        &lt;ProjectCollection&gt;
+            &lt;SolutionFolder Name=&quot;Src&quot;&gt;
+                &lt;ProjectTemplateLink ProjectName=&quot;$projectname$.Api&quot; CopyParameters=&quot;true&quot;&gt;Template.Api\MyTemplate.vstemplate&lt;/ProjectTemplateLink&gt;
+                &lt;ProjectTemplateLink ProjectName=&quot;$projectname$.Application&quot; CopyParameters=&quot;true&quot;&gt;Template.Application\MyTemplate.vstemplate&lt;/ProjectTemplateLink&gt;                
+            &lt;/SolutionFolder&gt;            
+        &lt;/ProjectCollection&gt;
+    &lt;/TemplateContent&gt;
+&lt;/VSTemplate&gt;
+
+</code></pre><h2>建立系統範本</h2><ul><li>把專案的資料夾和系統範本的設定檔一起壓縮成一個 zip 檔</li><li>把 zip 放置 visual studio 讀取範本的路徑位置</li><li>不知道路徑可以在 tools &gt; options &gt; projects and solutions &gt; locations 找到對應路徑 User project template location</li></ul><p><img src="./pictures/2023-02-22/2023-02-22-find-template-path.png" alt="image"/></p><ul><li>確認系統範本</li></ul><p><img src="./pictures/2023-02-22/2023-02-22-system-template.png" alt="image"/></p>]]></content:encoded>
+        </item>
         <item>
             <title><![CDATA[miniProfiler 使用介紹]]></title>
             <link>https://reantoilpc.github.io/en/blog/2022-12-29-miniProfiler-guide</link>
@@ -60,6 +97,12 @@
     }
 
 </code></pre>]]></content:encoded>
+        </item>
+        <item>
+            <title><![CDATA[github unitofwork 使用介紹]]></title>
+            <link>https://reantoilpc.github.io/en/blog/2022-11-02-github-unitofwork</link>
+            <guid>2022-11-02-github-unitofwork</guid>
+            <pubDate>Wed, 02 Nov 2022 00:00:00 GMT</pubDate>
         </item>
         <item>
             <title><![CDATA[efcore 使用介紹]]></title>
