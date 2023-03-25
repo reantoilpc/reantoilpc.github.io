@@ -2,11 +2,51 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://reantoilpc.github.io/blog</id>
     <title>My Site Blog</title>
-    <updated>2023-02-22T00:00:00.000Z</updated>
+    <updated>2023-03-25T00:00:00.000Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://reantoilpc.github.io/blog"/>
     <subtitle>My Site Blog</subtitle>
     <icon>https://reantoilpc.github.io/img/favicon.ico</icon>
+    <entry>
+        <title type="html"><![CDATA[使用 Lens IDE 管理 Azure K8s]]></title>
+        <id>2023-03-25-lens-with-k8s</id>
+        <link href="https://reantoilpc.github.io/blog/2023-03-25-lens-with-k8s"/>
+        <updated>2023-03-25T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[起因]]></summary>
+        <content type="html"><![CDATA[<h2>起因</h2><p>最近公司開始導入微服務概念後，工作上的維運也開始有些轉變，系統的佈署從原本的地端改成Azure雲端，並且打包成<code>Container</code>佈署在<code>k8s</code>上，因此就需要擴充工作上的技能包，最先要提升就是k8s觀念及如何維運在k8s上運行的專案。</p><p>所以要怎麼透過工具連到<code>Azure k8s</code>就變成很重要。</p><h2>Lens 工具</h2><p>Step1
+先註冊帳號，並下載 <a href="https://k8slens.dev/">Lens</a></p><p>Setp2
+由於 k8s 是安裝 Azure 服務上，因此可以透過下指令方式對 Azure 服務操作，下載安裝 <a href="https://learn.microsoft.com/zh-tw/cli/azure/">Azure CLI</a></p><p>Setp3
+由於要透過 IDE 連線 k8s cluster 就必需要有 k8s config 內包含 Cluster、User、Namespace 與身分認證相關資訊，因此要透過 Azure CLI 進行 k8s config 匯出</p><ul><li>開起 PowserSell 下 Azure CLI 指令</li></ul><pre><code class="language-shell">
+# step 1 登入 Azure
+az login
+
+# step 2 取得憑證，會下載憑證設定，Azure 已產生好語法，只要參考下圖，複製指令執行就可以
+az aks get-credentials --resource-group &lt;resource group name&gt; --name &lt;k8s name&gt;
+
+</code></pre><p><img src="./pictures/2023-03-25/download-k8s-config.png" alt="image"/></p><ul><li>匯出 k8s config 檔案會放至 <code>C:\Users\{User}\.kube</code>，格式大至如下</li></ul><pre><code class="language-yml">apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority-data: &lt;ca-data-here&gt;
+    server: https://your-k8s-cluster.com
+  name: &lt;cluster-name&gt;
+contexts:
+- context:
+    cluster:  &lt;cluster-name&gt;
+    user:  &lt;cluster-name-user&gt;
+  name:  &lt;cluster-name&gt;
+current-context:  &lt;cluster-name&gt;
+kind: Config
+preferences: {}
+users:
+- name:  &lt;cluster-name-user&gt;
+  user:
+    token: &lt;secret-token-here&gt;
+</code></pre><p>Setp4</p><p>Lens 讀取 k8s config</p><p><img src="./pictures/2023-03-25/lens-import-config.png" alt="image"/></p><p>讀取成功畫面</p><p><img src="./pictures/2023-03-25/lens-connection-k8s.png" alt="image"/></p><p>找到系統佈署的Pods</p><p><img src="./pictures/2023-03-25/lens-with-pods.png" alt="image"/></p>]]></content>
+        <author>
+            <name>Ray Hsu</name>
+            <uri>https://github.com/reantoilpc</uri>
+        </author>
+    </entry>
     <entry>
         <title type="html"><![CDATA[建立 visual studio multiple project template]]></title>
         <id>2023-02-22-Create-Multiple-Project-Template</id>
