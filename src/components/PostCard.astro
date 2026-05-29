@@ -1,0 +1,9 @@
+---
+interface Props { href: string; title: string; pubDate: Date; tags: string[]; description?: string; }
+const { href, title, pubDate, tags, description } = Astro.props;
+---
+<a href={href} class="block py-4 border-b" style="border-color:var(--border)">
+  <h3 class="text-lg font-semibold">{title}</h3>
+  <p class="text-xs mt-1" style="color:var(--muted)">{pubDate.toISOString().slice(0,10)} · {tags.map(t=>`#${t}`).join(' ')}</p>
+  {description && <p class="text-sm mt-1" style="color:var(--muted)">{description}</p>}
+</a>

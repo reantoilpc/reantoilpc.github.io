@@ -1,0 +1,12 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+const posts = await getCollection('blog', ({ data }) => !data.draft);
+const tags = [...new Set(posts.flatMap((p) => p.data.tags))].sort();
+---
+<BaseLayout title="標籤 — Ray Hsu" description="所有標籤">
+  <h1 class="text-2xl font-bold mb-4">標籤</h1>
+  <div class="flex flex-wrap gap-2">
+    {tags.map((t) => <a href={`/tags/${t}`} class="rounded-full border px-3 py-1 text-sm" style="border-color:var(--border)">#{t}</a>)}
+  </div>
+</BaseLayout>
