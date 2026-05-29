@@ -1,0 +1,37 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+import { getPostSlug } from '../../utils';
+import { SITE_TITLE, TAGLINE, SITE_DESCRIPTION, GITHUB_URL } from '../../consts';
+import { Image } from 'astro:assets';
+import avatar from '../../assets/avatar.png';
+const recent = (await getCollection('blog', ({ data }) => data.lang === 'en' && !data.draft))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()).slice(0, 5);
+---
+<BaseLayout title={`${SITE_TITLE} — ${TAGLINE['en']}`} description={SITE_DESCRIPTION['en']}>
+  <section class="flex items-center gap-5 pt-4">
+    <Image src={avatar} alt="Ray Hsu" width={144} height={144} class="avatar" />
+    <div>
+      <h1 class="wordmark text-3xl font-bold tracking-tight sm:text-4xl">{SITE_TITLE}</h1>
+      <p class="meta mt-1.5" style="font-size:.82rem;color:var(--accent)">{TAGLINE['en']}</p>
+    </div>
+  </section>
+  <p class="mt-5" style="color:var(--muted)">Hi, I'm Ray, a C# backend engineer. Notes and articles on .NET, backend and dev tooling.</p>
+  <div class="mt-4 flex flex-wrap gap-2">
+    <a href={GITHUB_URL} class="pill">GitHub</a>
+    <a href="/rss.xml" class="pill">RSS</a>
+  </div>
+
+  <section class="mt-12">
+    <div class="mb-4 flex items-center justify-between">
+      <h2 class="section-title">Latest posts</h2>
+      <a href="/en/blog" class="link-accent text-sm">All →</a>
+    </div>
+    {recent.length ? (
+      <div class="space-y-3">
+        {recent.map((p) => <PostCard href={`/en/blog/${getPostSlug(p)}`} title={p.data.title} pubDate={p.data.pubDate} tags={p.data.tags} description={p.data.description} />)}
+      </div>
+    ) : <p style="color:var(--muted)">No posts in English yet.</p>}
+  </section>
+</BaseLayout>

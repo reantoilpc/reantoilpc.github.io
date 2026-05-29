@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkwebsite=self.webpackChunkwebsite||[]).push([[1110],{1734:function(e){e.exports=JSON.parse('{"allTagsPath":"/en/blog/tags","slug":"/en/blog/tags/enums-net","name":"Enums.NET","count":1,"permalink":"/en/blog/tags/enums-net"}')}}]);

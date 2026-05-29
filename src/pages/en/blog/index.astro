@@ -1,0 +1,13 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import PostCard from '../../../components/PostCard.astro';
+import { getPostSlug } from '../../../utils';
+const posts = (await getCollection('blog', ({ data }) => data.lang === 'en' && !data.draft))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+---
+<BaseLayout title="Blog — Ray Hsu" description="Articles by Ray Hsu">
+  <h1 class="text-2xl font-bold mb-4">Blog</h1>
+  {posts.length ? posts.map((p) => <PostCard href={`/en/blog/${getPostSlug(p)}`} title={p.data.title} pubDate={p.data.pubDate} tags={p.data.tags} description={p.data.description} />)
+    : <p style="color:var(--muted)">No posts in English yet.</p>}
+</BaseLayout>

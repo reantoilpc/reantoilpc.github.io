@@ -1,0 +1,33 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import PostCard from '../../../components/PostCard.astro';
+import BlogSidebar from '../../../components/BlogSidebar.astro';
+import { getPublishedPosts, getPostSlug } from '../../../utils';
+
+export async function getStaticPaths() {
+  const ymOf = (d: Date) => `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+  const posts = await getPublishedPosts('zh-TW');
+  const yms = [...new Set(posts.map((p) => ymOf(p.data.pubDate)))];
+  return yms.map((ym) => ({
+    params: { ym },
+    props: { ym, posts: posts.filter((p) => ymOf(p.data.pubDate) === ym) },
+  }));
+}
+const { ym, posts } = Astro.props;
+const [year, month] = ym.split('-');
+const heading = `${year} 年 ${Number(month)} 月`;
+---
+<BaseLayout title={`${heading} — Ray Hsu`} description={`${heading} 發表的文章`} wide>
+  <div class="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_15rem]">
+    <div>
+      <p class="meta mb-1">每月彙整</p>
+      <h1 class="section-title mb-5">{heading}</h1>
+      <div class="space-y-3">
+        {posts.map((p) => (
+          <PostCard href={`/blog/${getPostSlug(p)}`} title={p.data.title} pubDate={p.data.pubDate} tags={p.data.tags} description={p.data.description} />
+        ))}
+      </div>
+    </div>
+    <BlogSidebar />
+  </div>
+</BaseLayout>

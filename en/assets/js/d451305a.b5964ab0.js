@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkwebsite=self.webpackChunkwebsite||[]).push([[9215],{8734:function(e){e.exports=JSON.parse('{"allTagsPath":"/en/blog/tags","slug":"/en/blog/tags/claude-code","name":"claude-code","count":1,"permalink":"/en/blog/tags/claude-code"}')}}]);

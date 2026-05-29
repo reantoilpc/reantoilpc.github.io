@@ -1,0 +1,8 @@
+---
+import { getLangFromUrl, useTranslations } from '../i18n/utils';
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const path = Astro.url.pathname;
+const target = lang === 'en' ? (path.replace(/^\/en/, '') || '/') : `/en${path}`;
+---
+<a href={target} class="navlink text-sm">{t('lang.switch')}</a>

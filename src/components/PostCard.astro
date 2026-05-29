@@ -1,0 +1,10 @@
+---
+interface Props { href: string; title: string; pubDate: Date; tags: string[]; description?: string; }
+const { href, title, pubDate, tags, description } = Astro.props;
+const date = pubDate.toISOString().slice(0, 10);
+---
+<a href={href} class="card group">
+  <h3 class="text-lg font-semibold tracking-tight transition-colors group-hover:text-[var(--accent)]">{title}</h3>
+  <p class="meta mt-1.5">{date}{tags.length ? ' · ' + tags.map((t) => `#${t}`).join('  ') : ''}</p>
+  {description && <p class="mt-2 text-sm" style="color:var(--muted)">{description}</p>}
+</a>

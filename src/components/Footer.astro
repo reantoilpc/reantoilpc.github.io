@@ -1,0 +1,13 @@
+---
+import { SITE_TITLE, GITHUB_URL } from '../consts';
+const year = new Date().getFullYear();
+---
+<footer class="mt-20 border-t" style="border-color:var(--border)">
+  <div class="mx-auto flex max-w-3xl flex-col gap-2 px-4 py-8 meta sm:flex-row sm:items-center sm:justify-between">
+    <span>© {year} {SITE_TITLE} · Built with Astro</span>
+    <span class="flex gap-4">
+      <a href={GITHUB_URL} class="hover:text-[var(--accent)]">GitHub</a>
+      <a href="/rss.xml" class="hover:text-[var(--accent)]">RSS</a>
+    </span>
+  </div>
+</footer>

@@ -1,0 +1,41 @@
+---
+import { SITE_TITLE, TAGLINE } from '../consts';
+import { getLangFromUrl, useTranslations, localizePath } from '../i18n/utils';
+import ThemeToggle from './ThemeToggle.astro';
+import LanguageSwitcher from './LanguageSwitcher.astro';
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const homeHref = localizePath('/', lang);
+const current = (Astro.url.pathname.replace(/\/$/, '') || '/');
+const nav = [
+  { href: localizePath('/', lang), label: t('nav.home') },
+  { href: localizePath('/blog', lang), label: t('nav.blog') },
+  { href: localizePath('/notes', lang), label: t('nav.notes') },
+  { href: localizePath('/about', lang), label: t('nav.about') },
+];
+function isActive(href: string): boolean {
+  const h = href === '/' ? '/' : href.replace(/\/$/, '');
+  if (h === '/' || h === '/en') return current === h;
+  return current === h || current.startsWith(h + '/');
+}
+---
+<header class="site-header">
+  <div class="mx-auto flex max-w-3xl items-center justify-between px-4 py-3">
+    <a href={homeHref} class="flex flex-col leading-tight">
+      <span class="wordmark text-base font-bold tracking-tight">{SITE_TITLE}</span>
+      <span class="meta hidden sm:block">{TAGLINE[lang]}</span>
+    </a>
+    <nav class="flex items-center gap-2 sm:gap-3 text-sm">
+      {nav.map((i) => (
+        <a href={i.href} class="navlink" {...(isActive(i.href) ? { 'data-active': '' } : {})}>{i.label}</a>
+      ))}
+      <a href={localizePath('/blog', lang) + '#search'} class="icon-btn" aria-label={t('search.placeholder')}>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path>
+        </svg>
+      </a>
+      <LanguageSwitcher />
+      <ThemeToggle />
+    </nav>
+  </div>
+</header>
