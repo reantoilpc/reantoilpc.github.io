@@ -1,8 +1,23 @@
 ---
+import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+import PostCard from '../components/PostCard.astro';
+import { getPostSlug } from '../utils';
+import { SITE_TITLE, TAGLINE, SITE_DESCRIPTION } from '../consts';
+const recent = (await getCollection('blog', ({ data }) => data.lang === 'zh-TW' && !data.draft))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()).slice(0, 5);
 ---
-<BaseLayout title={SITE_TITLE} description={SITE_DESCRIPTION['zh-TW']}>
-  <h1 class="text-2xl font-bold">Ray Hsu</h1>
-  <p>版型測試頁。</p>
+<BaseLayout title={`${SITE_TITLE} — ${TAGLINE['zh-TW']}`} description={SITE_DESCRIPTION['zh-TW']}>
+  <section class="py-6">
+    <h1 class="text-3xl font-bold">{SITE_TITLE}</h1>
+    <p class="mt-2" style="color:var(--muted)">{TAGLINE['zh-TW']}</p>
+    <p class="mt-4">嗨，我是 Ray，一名 C# 後端工程師。這裡記錄我在 .NET、後端與開發工具上的文章與筆記。</p>
+  </section>
+  <section class="mt-8">
+    <div class="flex items-center justify-between">
+      <h2 class="text-xl font-bold">最新文章</h2>
+      <a href="/blog" class="text-sm" style="color:var(--accent)">全部 →</a>
+    </div>
+    {recent.map((p) => <PostCard href={`/blog/${getPostSlug(p)}`} title={p.data.title} pubDate={p.data.pubDate} tags={p.data.tags} description={p.data.description} />)}
+  </section>
 </BaseLayout>
