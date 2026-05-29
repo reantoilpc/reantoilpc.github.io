@@ -12,6 +12,7 @@ const lang = getLangFromUrl(Astro.url);
 <!doctype html>
 <html lang={lang}>
   <head>
+    <meta charset="utf-8" />
     <script is:inline>
       const s = localStorage.getItem('theme');
       if (s === 'dark' || (!s && matchMedia('(prefers-color-scheme: dark)').matches)) document.documentElement.classList.add('dark');

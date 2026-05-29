@@ -21,7 +21,13 @@ export default defineConfig({
     '/docs/intro': '/notes',
   },
   integrations: [
-    expressiveCode({ themes: ['github-dark', 'github-light'], styleOverrides: { borderRadius: '0.5rem' } }),
+    expressiveCode({
+      themes: ['github-dark', 'github-light'],
+      styleOverrides: {
+        borderRadius: '0.5rem',
+        codeFontFamily: "'Cascadia Code', 'JetBrains Mono', 'Fira Code', Consolas, 'SF Mono', Menlo, monospace",
+      },
+    }),
     mdx(),
     sitemap({
       i18n: { defaultLocale: 'zh-TW', locales: { 'zh-TW': 'zh-TW', en: 'en' } },
