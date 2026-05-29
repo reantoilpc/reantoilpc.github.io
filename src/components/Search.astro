@@ -1,0 +1,15 @@
+---
+import { getLangFromUrl, useTranslations } from '../i18n/utils';
+const t = useTranslations(getLangFromUrl(Astro.url));
+---
+<div id="pagefind-search" data-placeholder={t('search.placeholder')}></div>
+<link rel="stylesheet" href="/pagefind/pagefind-ui.css" />
+<script is:inline>
+  // Pagefind 產物只有在 build 後存在；dev 模式會找不到，屬正常。
+  // is:inline 讓 Astro/Vite 不處理此 script，動態 import 才能指向部署後的執行期檔案。
+  async function init() {
+    const { PagefindUI } = await import('/pagefind/pagefind-ui.js');
+    new PagefindUI({ element: '#pagefind-search', showSubResults: true });
+  }
+  if (document.getElementById('pagefind-search')) init().catch(() => {});
+</script>
