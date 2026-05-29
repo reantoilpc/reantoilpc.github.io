@@ -11,8 +11,8 @@
   --border: #e7e1d6;
   --accent: #4f46e5;
   --accent-2: #7c6cf0;
-  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang TC',
-    'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
+  --font-sans: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang TC',
+    'Microsoft JhengHei', sans-serif;
   --font-mono: ui-monospace, 'SF Mono', 'Cascadia Code', 'JetBrains Mono', Menlo, Consolas, monospace;
   --font-display: 'Space Grotesk Variable', var(--font-sans);
 }
@@ -32,8 +32,10 @@ body {
   background: var(--bg);
   color: var(--fg);
   font-family: var(--font-sans);
-  line-height: 1.75;
+  font-size: 1.0625rem;
+  line-height: 1.8;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 a { color: inherit; text-decoration: none; }
 ::selection { background: color-mix(in srgb, var(--accent) 28%, transparent); }
