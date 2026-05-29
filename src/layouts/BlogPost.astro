@@ -9,14 +9,12 @@ const dateStr = pubDate.toISOString().slice(0, 10);
 ---
 <BaseLayout title={`${title} — Ray Hsu`} description={description}>
   <article class="prose">
-    <h1 class="text-3xl font-bold mb-2">{title}</h1>
-    <p class="text-sm mb-6" style="color:var(--muted)">
-      {t('blog.publishedOn')} {dateStr} · {minutes} {t('blog.readingTime')}
-    </p>
+    <h1 class="mb-3 text-3xl font-bold leading-tight tracking-tight sm:text-4xl">{title}</h1>
+    <p class="meta mb-10">{t('blog.publishedOn')} {dateStr} · {minutes} {t('blog.readingTime')}</p>
     <slot />
     {tags.length > 0 && (
-      <div class="mt-8 flex flex-wrap gap-2">
-        {tags.map((tag) => <a href={`/tags/${tag}`} class="text-xs rounded-full border px-3 py-1" style="border-color:var(--border)">#{tag}</a>)}
+      <div class="mt-12 flex flex-wrap gap-2 border-t pt-6" style="border-color:var(--border)">
+        {tags.map((tag) => <a href={`/tags/${tag}`} class="pill">#{tag}</a>)}
       </div>
     )}
   </article>

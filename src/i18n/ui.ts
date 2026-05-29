@@ -10,7 +10,7 @@ export const ui = {
     'blog.publishedOn': '發表於',
     'blog.empty': '目前還沒有文章。',
     'theme.toggle': '切換深色／淺色',
-    'lang.switch': 'English',
+    'lang.switch': 'EN',
   },
   en: {
     'nav.home': 'Home',
@@ -23,7 +23,7 @@ export const ui = {
     'blog.publishedOn': 'Published on',
     'blog.empty': 'No posts in English yet.',
     'theme.toggle': 'Toggle dark/light',
-    'lang.switch': '繁體中文',
+    'lang.switch': '中',
   },
 } as const;
 

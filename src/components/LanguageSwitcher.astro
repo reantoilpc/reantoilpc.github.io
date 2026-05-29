@@ -5,4 +5,4 @@ const t = useTranslations(lang);
 const path = Astro.url.pathname;
 const target = lang === 'en' ? (path.replace(/^\/en/, '') || '/') : `/en${path}`;
 ---
-<a href={target} class="text-sm hover:text-[var(--accent)]">{t('lang.switch')}</a>
+<a href={target} class="navlink text-sm">{t('lang.switch')}</a>

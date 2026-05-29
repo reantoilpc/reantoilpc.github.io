@@ -8,9 +8,11 @@ const posts = (await getCollection('blog', ({ data }) => data.lang === 'zh-TW' &
   .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 ---
 <BaseLayout title="文章 — Ray Hsu" description="Ray Hsu 的技術文章">
-  <h1 class="text-2xl font-bold mb-2">文章</h1>
-  <div class="mb-6"><Search /></div>
-  {posts.map((p) => (
-    <PostCard href={`/blog/${getPostSlug(p)}`} title={p.data.title} pubDate={p.data.pubDate} tags={p.data.tags} description={p.data.description} />
-  ))}
+  <h1 class="section-title mb-5">文章</h1>
+  <div id="search" class="mb-8"><Search /></div>
+  <div class="space-y-3">
+    {posts.map((p) => (
+      <PostCard href={`/blog/${getPostSlug(p)}`} title={p.data.title} pubDate={p.data.pubDate} tags={p.data.tags} description={p.data.description} />
+    ))}
+  </div>
 </BaseLayout>
