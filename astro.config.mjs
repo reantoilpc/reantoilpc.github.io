@@ -1,35 +1,24 @@
-// @ts-check
-
+import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
-import { defineConfig, fontProviders } from 'astro/config';
+import expressiveCode from 'astro-expressive-code';
+import tailwindcss from '@tailwindcss/vite';
 
-// https://astro.build/config
 export default defineConfig({
-	site: 'https://example.com',
-	integrations: [mdx(), sitemap()],
-	fonts: [
-		{
-			provider: fontProviders.local(),
-			name: 'Atkinson',
-			cssVariable: '--font-atkinson',
-			fallbacks: ['sans-serif'],
-			options: {
-				variants: [
-					{
-						src: ['./src/assets/fonts/atkinson-regular.woff'],
-						weight: 400,
-						style: 'normal',
-						display: 'swap',
-					},
-					{
-						src: ['./src/assets/fonts/atkinson-bold.woff'],
-						weight: 700,
-						style: 'normal',
-						display: 'swap',
-					},
-				],
-			},
-		},
-	],
+  site: 'https://reantoilpc.github.io',
+  base: '/',
+  trailingSlash: 'ignore',
+  i18n: {
+    defaultLocale: 'zh-TW',
+    locales: ['zh-TW', 'en'],
+    routing: { prefixDefaultLocale: false },
+  },
+  integrations: [
+    expressiveCode({ themes: ['github-dark', 'github-light'], styleOverrides: { borderRadius: '0.5rem' } }),
+    mdx(),
+    sitemap({
+      i18n: { defaultLocale: 'zh-TW', locales: { 'zh-TW': 'zh-TW', en: 'en' } },
+    }),
+  ],
+  vite: { plugins: [tailwindcss()] },
 });
