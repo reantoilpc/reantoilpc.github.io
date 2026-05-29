@@ -19,6 +19,6 @@ const words = post.body?.length ? post.body.trim().split(/\s+/).length : 0;
 const minutes = Math.max(1, Math.round(words / 350));
 ---
 <BlogPost title={post.data.title} description={post.data.description}
-  pubDate={post.data.pubDate} tags={post.data.tags} minutes={minutes} category={post.data.category}>
+  pubDate={post.data.pubDate} tags={post.data.tags} minutes={minutes} category={post.data.category} headings={headings}>
   <Content />
 </BlogPost>

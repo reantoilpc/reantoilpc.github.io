@@ -6,8 +6,9 @@ const archive = getArchive(posts);
 const path = Astro.url.pathname.replace(/\/$/, '');
 const activeCat = path.match(/\/blog\/category\/([^/]+)/)?.[1];
 const activeYm = path.match(/\/blog\/archive\/([^/]+)/)?.[1];
+const { sticky = true } = Astro.props;
 ---
-<aside class="space-y-6 self-start lg:sticky lg:top-20">
+<aside class:list={['space-y-6', sticky && 'self-start lg:sticky lg:top-20']}>
   <div class="card">
     <h2 class="section-title mb-3" style="font-size:1rem">文章分類</h2>
     <ul>

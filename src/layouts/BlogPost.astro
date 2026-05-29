@@ -1,10 +1,11 @@
 ---
 import BaseLayout from './BaseLayout.astro';
 import BlogSidebar from '../components/BlogSidebar.astro';
+import TableOfContents from '../components/TableOfContents.astro';
 import { getLangFromUrl, useTranslations } from '../i18n/utils';
 import { slugForCategory } from '../categories';
-interface Props { title: string; description: string; pubDate: Date; tags: string[]; minutes: number; category?: string; }
-const { title, description, pubDate, tags, minutes, category } = Astro.props;
+interface Props { title: string; description: string; pubDate: Date; tags: string[]; minutes: number; category?: string; headings: { depth: number; slug: string; text: string }[]; }
+const { title, description, pubDate, tags, minutes, category, headings } = Astro.props;
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 const dateStr = pubDate.toISOString().slice(0, 10);
@@ -26,6 +27,9 @@ const dateStr = pubDate.toISOString().slice(0, 10);
         </div>
       )}
     </article>
-    <BlogSidebar />
+    <div class="space-y-6 self-start lg:sticky lg:top-20">
+      <TableOfContents headings={headings} />
+      <BlogSidebar sticky={false} />
+    </div>
   </div>
 </BaseLayout>
