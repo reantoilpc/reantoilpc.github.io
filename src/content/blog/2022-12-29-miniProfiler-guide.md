@@ -3,6 +3,7 @@ title: miniProfiler 使用介紹
 description: ""
 pubDate: 2022-12-29
 tags: [miniProfiler]
+category: ASP.NET Core
 lang: zh-TW
 ---
 

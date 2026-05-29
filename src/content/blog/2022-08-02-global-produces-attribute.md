@@ -3,6 +3,7 @@ title: Produces Attribute 全域設定
 description: ""
 pubDate: 2022-08-02
 tags: [nuget, Produces, Attribute]
+category: ASP.NET Core
 lang: zh-TW
 ---
 

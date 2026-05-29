@@ -3,6 +3,7 @@ title: 使用 Lens IDE 管理 Azure K8s
 description: ""
 pubDate: 2023-03-25
 tags: [lens, k8s]
+category: DevOps
 lang: zh-TW
 ---
 

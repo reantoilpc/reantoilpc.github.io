@@ -3,6 +3,7 @@ title: Postman 環境變數設定
 description: ""
 pubDate: 2022-05-31
 tags: [Postman]
+category: Tools
 lang: zh-TW
 ---
 

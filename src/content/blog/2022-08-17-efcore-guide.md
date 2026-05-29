@@ -3,6 +3,7 @@ title: efcore 使用介紹
 description: ""
 pubDate: 2022-08-17
 tags: [efcore]
+category: Entity Framework
 lang: zh-TW
 ---
 

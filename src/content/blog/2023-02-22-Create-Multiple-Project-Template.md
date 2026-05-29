@@ -3,6 +3,7 @@ title: 建立 visual studio multiple project template
 description: ""
 pubDate: 2023-02-22
 tags: [visual studio, template]
+category: Tools
 lang: zh-TW
 ---
 

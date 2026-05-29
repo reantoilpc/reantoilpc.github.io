@@ -3,6 +3,7 @@ title: Enums.NET 使用
 description: ""
 pubDate: 2022-07-21
 tags: [nuget, unittest, Enums.NET]
+category: "C#"
 lang: zh-TW
 ---
 

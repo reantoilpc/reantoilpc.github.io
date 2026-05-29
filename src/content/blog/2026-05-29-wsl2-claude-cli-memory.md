@@ -3,6 +3,7 @@ title: WSL2 + Claude CLI 記憶體越用越多最後當機 — 完整除錯與�
 description: ""
 pubDate: 2026-05-29
 tags: [wsl2, claude-code, debug, windows, memory]
+category: Tools
 lang: zh-TW
 ---
 
