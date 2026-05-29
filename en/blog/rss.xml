@@ -153,7 +153,38 @@ wsl --shutdown
 
 # 看目前哪些 distro 在跑
 wsl --list --running
-</code></pre><hr/><h2>14. 參考資料</h2><ul><li><a href="https://learn.microsoft.com/zh-tw/windows/wsl/wsl-config">WSL <code>.wslconfig</code> 官方文件</a></li><li><a href="https://github.com/microsoft/WSL/releases"><code>autoMemoryReclaim</code> 發布筆記（WSL 0.66.1）</a></li><li><a href="https://learn.microsoft.com/zh-tw/windows/wsl/disk-space">Sparse VHD support in WSL</a></li></ul><hr/><p><em>記錄日期：2026-05-29 / 環境：Windows 11 build 26200, WSL 2.6.3.0, Ubuntu 24.04</em></p>]]></content:encoded>
+</code></pre><hr/><h2>14. 參考資料</h2><ul><li><a href="https://learn.microsoft.com/zh-tw/windows/wsl/wsl-config">WSL <code>.wslconfig</code> 官方文件</a></li><li><a href="https://github.com/microsoft/WSL/releases"><code>autoMemoryReclaim</code> 發布筆記（WSL 0.66.1）</a></li><li><a href="https://learn.microsoft.com/zh-tw/windows/wsl/disk-space">Sparse VHD support in WSL</a></li></ul><hr/><h2>附錄：本部落格發文流程備忘（給未來的我）</h2><p>這個 blog 是 Docusaurus 2.0.0-beta.14（2021 年）+ GitHub Pages，source repo 跟 deploy repo 分開：</p><ul><li><strong>Source</strong>：<a href="https://github.com/reantoilpc/docusaurus_websit"><code>reantoilpc/docusaurus_websit</code></a> — 寫 markdown 的地方</li><li><strong>Deploy 產出</strong>：<a href="https://github.com/reantoilpc/reantoilpc.github.io"><code>reantoilpc/reantoilpc.github.io</code></a> — 編譯後靜態檔案</li></ul><p>原本 CI（<code>.github/workflows/publish-blog.yml</code>）會在 push 到 main 後自動 build + deploy，但 <strong>CI 目前壞掉</strong>（後面會解釋），所以暫時用「本機 build + deploy」繞過。</p><h3>標準發文流程（CI 壞掉期間）</h3><pre><code class="language-bash">cd ~/projects/Github/docusaurus_websit
+
+# 1. 寫新文章
+# 檔名格式：blog/YYYY-MM-DD-slug.md
+# frontmatter 範本：
+# ---
+# slug: YYYY-MM-DD-slug
+# title: 文章標題
+# authors: rayhsu
+# tags: [tag1, tag2]
+# ---
+
+# 2. commit source
+git add blog/&lt;新檔&gt;.md
+git commit -m &quot;&lt;簡短中文敘述&gt;&quot;
+git push origin main
+
+# 3. 本機 build &amp; deploy（繞 CI）
+GIT_USER=reantoilpc DEPLOYMENT_BRANCH=main USE_SSH=false npx docusaurus deploy
+
+# 4. 等 GitHub Pages CDN propagate（30~60 秒）
+curl -sI https://reantoilpc.github.io/blog/YYYY-MM-DD-slug/ | head -1
+# 預期：HTTP/2 200
+</code></pre><h3>CI 為什麼壞掉</h3><p>問題在 <code>package.json</code> 用 caret ranges（<code>^2.0.0-beta.14</code>）+ <strong>repo 沒 yarn.lock</strong>：</p><ol><li>CI 跑 <code>yarn install</code> 每次都抓最新 transitive deps</li><li>套件升版後跟 Docusaurus 2021 年的版本飄走，build 工具鏈（webpack ProgressPlugin、node-releases…）API mismatch</li><li>連續兩次 fail：<ul><li>第一次：<code>node-releases@2.0.46</code> 要求 Node ≥18，CI 跑 Node 14 → 已修（bump 到 Node 18）</li><li>第二次：webpack ProgressPlugin schema 不認得 <code>name</code> / <code>color</code> / <code>reporters</code> 屬性 → 沒修</li></ul></li></ol><p>本機之所以能 build，是因為 <code>node_modules/</code> 被 commit 在 repo 裡（290 MB），webpack 鎖在相容的 5.67.0。</p><h3>之後想根治 CI 的三條路</h3><table><thead><tr><th>路線</th><th>動作</th><th>風險</th></tr></thead><tbody><tr><td>(a) 用既有 node_modules 生 yarn.lock</td><td><code>yarn import</code> 從 <code>package-lock.json</code> 轉、或 <code>synp</code> 工具</td><td>中（要驗轉換正確性）</td></tr><tr><td>(b) workflow 改用 <code>npm ci</code> + 既有 <code>package-lock.json</code></td><td>改一行 + lockfile 也老，可能還要鎖 webpack <code>resolutions</code></td><td>中（package-lock.json 也是 4 年前）</td></tr><tr><td>(c) 升級到 Docusaurus 3</td><td>大改，可能撞 mdx 語法、theme override、React 17→18 等</td><td>高</td></tr></tbody></table><p>目前 trade-off：每篇文章手動跑一次 <code>npx docusaurus deploy</code> 不算慢（本機既有 node_modules，build 約 20 秒），治本工程量大，等下次想動再說。</p><h3>環境檢查清單</h3><p>換新電腦 / 重 clone 後要先確認本機能 build：</p><pre><code class="language-bash">cd ~/projects/Github/docusaurus_websit
+# node_modules 應該已經 commit 進 repo（290 MB）
+ls node_modules/webpack/package.json &amp;&amp; cat node_modules/webpack/package.json | grep version
+# 預期 &quot;version&quot;: &quot;5.67.0&quot;
+
+# 試一次 build 不 deploy
+npx docusaurus build
+# 預期：Generated static files in build. (+ build/en/)
+</code></pre><p>如果 build 過了就放心。Deploy 走 <code>USE_SSH=false</code> 用 HTTPS + <code>gh auth</code> 既有憑證，不需要額外 SSH key。</p><hr/><p><em>記錄日期：2026-05-29 / 環境：Windows 11 build 26200, WSL 2.6.3.0, Ubuntu 24.04</em></p>]]></content:encoded>
         </item>
         <item>
             <title><![CDATA[使用 Lens IDE 管理 Azure K8s]]></title>
