@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkwebsite=self.webpackChunkwebsite||[]).push([[1452],{5674:function(s){s.exports=JSON.parse('{"allTagsPath":"/en/blog/tags","slug":"/en/blog/tags/wsl-2","name":"wsl2","count":1,"permalink":"/en/blog/tags/wsl-2"}')}}]);

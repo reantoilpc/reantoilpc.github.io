@@ -4,9 +4,157 @@
         <title>My Site Blog</title>
         <link>https://reantoilpc.github.io/blog</link>
         <description>My Site Blog</description>
-        <lastBuildDate>Sat, 25 Mar 2023 00:00:00 GMT</lastBuildDate>
+        <lastBuildDate>Fri, 29 May 2026 00:00:00 GMT</lastBuildDate>
         <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
         <generator>https://github.com/jpmonette/feed</generator>
+        <item>
+            <title><![CDATA[WSL2 + Claude CLI 記憶體越用越多最後當機 — 完整除錯與解法]]></title>
+            <link>https://reantoilpc.github.io/blog/2026-05-29-wsl2-claude-cli-memory</link>
+            <guid>2026-05-29-wsl2-claude-cli-memory</guid>
+            <pubDate>Fri, 29 May 2026 00:00:00 GMT</pubDate>
+            <description><![CDATA[TL;DR]]></description>
+            <content:encoded><![CDATA[<h2>TL;DR</h2><p>在 Windows 11 用 WSL2 Ubuntu 跑 Claude CLI，Task Manager 看到 <code>VmmemWSL</code> 一路漲、最後整機卡死。<strong>真正根因</strong>不是 Claude CLI 漏記憶體，而是三件事疊加：</p><ol><li>舊的 <code>claude --resume</code> session 沒關，殘留在背景吃記憶體</li><li>每個 session 都會起一組 MCP server（Azure / Atlassian / …），數量乘以 session 數</li><li><strong>沒設 <code>.wslconfig</code></strong>，WSL2 既沒有 memory cap，也沒開 <code>autoMemoryReclaim</code>，閒置 RAM 不會還給 Windows</li></ol><p><strong>解法</strong>：殺殘留 session → <code>wsl --shutdown</code> → 建 <code>.wslconfig</code>（memory cap + <code>autoMemoryReclaim=gradual</code> + <code>sparseVhd=true</code>）。</p><h2>1. 問題現象</h2><table><thead><tr><th>現象</th><th>數據</th></tr></thead><tbody><tr><td>Windows 整機記憶體</td><td><strong>89%</strong> 已用</td></tr><tr><td>VmmemWSL（WSL2 VM process）</td><td>2,627 MB</td></tr><tr><td>WSL 越用越多，最後當掉</td><td>OOM killer 殺進程 + Windows 自己 swap</td></tr></tbody></table><p>Windows Task Manager 記憶體分佈：</p><pre><code class="language-text">VmmemWSL              2,627.9 MB
+Google Chrome (13)      832.1 MB
+JetBrains Rider         758.3 MB
+Microsoft Teams (10)    549.3 MB
+遠端桌面連線            317.8 MB
+JetBrains Rider.Backend 289.3 MB
+Google Chrome           272.1 MB
+Postman (5)             251.4 MB
+</code></pre><hr/><h2>2. 排查：先看 WSL 內部實況</h2><pre><code class="language-bash">$ free -h
+               total        used        free      shared  buff/cache   available
+Mem:            15Gi       3.1Gi        11Gi       114Mi       759Mi        12Gi
+Swap:          4.0Gi          0B       4.0Gi
+</code></pre><p>關鍵觀察：</p><ul><li><code>Mem total = 15Gi</code> → <strong>WSL 看得到主機全部 RAM</strong>，代表沒設 memory cap</li><li><code>buff/cache = 759 MB</code> → 不是 page cache 漲爆</li><li><code>used 3.1 Gi</code> 對得上 Windows 端看到的 <code>VmmemWSL 2.6 GB</code></li></ul><p>確認沒有 <code>.wslconfig</code>：</p><pre><code class="language-bash">$ ls /mnt/c/Users/rayhsu/.wslconfig
+ls: cannot access &#x27;/mnt/c/Users/rayhsu/.wslconfig&#x27;: No such file or directory
+</code></pre><hr/><h2>3. 證明：找出誰在吃記憶體</h2><pre><code class="language-bash">$ ps aux --sort=-%mem | head -10
+USER     PID %CPU %MEM     VSZ    RSS TTY STAT START   TIME COMMAND
+rayhsu  3262  0.8  4.5 7490M   738M pts/4 Sl+ May28  7:24 claude --resume --effort=max
+rayhsu  2055  0.7  4.1 7490M   671M pts/3 Sl+ May28  7:02 claude --resume --effort=max
+rayhsu  2405  0.6  3.4 7483M   556M pts/2 Sl+ May28  5:28 claude --resume --effort=max
+rayhsu 67652  3.7  2.6 7624M   431M pts/5 Sl+ 09:12  0:56 claude --resume xxxx
+rayhsu  3455  0.0  0.8 3645M   138M pts/4 Sl+ May28  0:27 azmcp server start ...
+rayhsu  2599  0.0  0.8 3644M   135M pts/2 Sl+ May28  0:28 azmcp server start ...
+rayhsu  2247  0.0  0.8 3644M   132M pts/3 Sl+ May28  0:28 azmcp server start ...
+</code></pre><p><strong>找到了</strong>：</p><ul><li><strong>4 個並行的 <code>claude --resume</code> session</strong>，三個是昨天（<code>May28</code>）開的沒關 → RSS 加總 ~2.4 GB</li><li><strong>每個 session 各自起一組 MCP server</strong>（<code>azmcp</code> ~130 MB + npm wrapper ~90 MB = ~220 MB），4 組 × 220 MB ≈ ~880 MB</li><li>VSZ 巨大（7.4 GB）是 Node.js V8 預留的 virtual address space，<strong>不代表實際使用</strong>；看 RSS 才是真實</li></ul><hr/><h2>4. 三個放大記憶體的根因</h2><h3>A. 殘留的 claude session</h3><p>Claude CLI 是 Node.js 寫的，<strong>長時間運行的 session 會緩慢長 heap</strong>：</p><ul><li>conversation transcript 留在記憶體</li><li>tool result buffer（讀進來的檔案、圖片）累積</li><li>即使 session 自動 compact，process heap 也不會立刻釋放</li></ul><p>→ <strong><code>/exit</code> 才算真的關閉</strong>；關掉終端機視窗如果是 detached 模式 process 還在。</p><h3>B. 每個 session 都吊一組 MCP server</h3><p>MCP server 是 <code>claude</code> 的 subprocess，<strong>claude 死了它才會死</strong>。所以：</p><pre><code class="language-text">N 個 claude session × M 個 MCP server = N × M 個 Node process
+</code></pre><p>我這台同時掛 4 個 session，每個都起 Azure MCP（即使這個專案根本沒用到 Azure）→ 浪費 ~880 MB。</p><h3>C. WSL2 沒 memory cap、不主動回收</h3><p>Windows 11 上 WSL2 預設 <code>memory = 主機全部 RAM</code>，再加上 <strong>Hyper-V 不會主動把閒置記憶體還給 Windows</strong>（dynamic memory 是針對 Linux kernel 看不到的層級）。結果：</p><blockquote><p><strong>WSL 記憶體峰值會留住，下不來 → Windows 越來越緊</strong></p></blockquote><p>這就是「越用越多」感覺的物理機制。</p><hr/><h2>5. 為什麼會「當掉」</h2><p>兩條路徑：</p><pre><code class="language-text">路徑 1（WSL 內爆）：
+  WSL anon memory ↗ → 接近 cap → Linux OOM killer 殺進程
+                                   └─ claude / mcp / build 突然消失
+
+路徑 2（Windows 整機爆）：
+  VmmemWSL 持續高水位 + Chrome/Rider/Teams 一起吃
+  → Windows 開始 swap → 整機 freeze 感
+</code></pre><p>兩條路徑都會體感「當機」，但<strong>原因不同、徵兆不同</strong>。</p><hr/><h2>6. 解法</h2><h3>步驟 1：先殺殘留 session（立刻見效）</h3><pre><code class="language-bash"># 看誰是舊的（從昨天留下來的）
+ps -ef | grep &quot;claude --resume&quot; | grep -v grep
+
+# 留新的，殺舊的（你的 PID 會不同）
+kill 2055 2405 3262
+</code></pre><p>→ 立刻釋放約 2 GB（claude 本身 + 跟它跑的 MCP server）。</p><h3>步驟 2：<code>wsl --shutdown</code> 讓 Windows 收回記憶體</h3><p>在 <strong>PowerShell</strong>（不是 WSL 視窗）：</p><pre><code class="language-powershell">wsl --shutdown
+</code></pre><blockquote><p>注意：這會關掉所有 WSL 視窗。下次 <code>wsl</code> 進來時記憶體歸零、<code>VmmemWSL</code> 從 0 開始計。</p></blockquote><h3>步驟 3：建 <code>.wslconfig</code> 治本</h3><p>放在 <strong>Windows 端</strong>（不是 Linux 裡）：</p><pre><code class="language-text">C:\Users\&lt;user&gt;\.wslconfig
+</code></pre><p>從 WSL 端寫等同寫到 <code>/mnt/c/Users/&lt;user&gt;/.wslconfig</code>，是同一個檔。</p><p>完整內容：</p><pre><code class="language-ini"># WSL2 global config. Applies to all distros. Edit + `wsl --shutdown` to reload.
+
+[wsl2]
+# Cap WSL memory at 8GB (host has 16GB; leaves room for Windows + Rider + Chrome + Teams).
+memory=8GB
+
+# Swap inside the WSL VM. Acts as a safety net before OOM killer fires.
+swap=4GB
+
+# CPU cores given to WSL (host has 20). 8 is plenty for parallel claude sessions
+# without starving Windows-side IDE / browser.
+processors=8
+
+# Default true on Win11, but explicit beats implicit when you debug later.
+localhostForwarding=true
+
+[experimental]
+# Auto-release freed memory back to Windows. Without this, VmmemWSL keeps the
+# high-water mark forever — the root cause of &quot;WSL grows but never shrinks&quot;.
+# Options: disabled | gradual | dropcache. `gradual` is the safe default.
+autoMemoryReclaim=gradual
+
+# Shrink the ext4 vhdx on file delete (otherwise it grows monotonically).
+sparseVhd=true
+</code></pre><blockquote><p>編輯後一定要 <code>wsl --shutdown</code> 才會重新讀取。</p></blockquote><hr/><h2>7. <code>.wslconfig</code> 各 key 在幹什麼</h2><h3><code>[wsl2]</code> section</h3><table><thead><tr><th>Key</th><th>作用</th><th>不設的後果</th></tr></thead><tbody><tr><td><code>memory=8GB</code></td><td>WSL VM 記憶體上限</td><td>Win11 預設 = 主機全部 RAM，會把 Windows 擠爆</td></tr><tr><td><code>swap=4GB</code></td><td>WSL VM 內 swap 大小</td><td>預設 = 25% RAM；設 0 = 沒安全網，一爆 cap 直接 OOM kill</td></tr><tr><td><code>processors=8</code></td><td>WSL 看到幾顆 vCPU</td><td>預設 = 主機全部核心，build 跑滿時拖到 Windows</td></tr><tr><td><code>localhostForwarding=true</code></td><td>WSL 服務 listen 在 0.0.0.0 → Windows <code>localhost:port</code> 可連</td><td>Win11 預設 true；寫上方便除錯</td></tr></tbody></table><h3><code>[experimental]</code> section（要分開放）</h3><table><thead><tr><th>Key</th><th>作用</th><th>不設的後果</th></tr></thead><tbody><tr><td><code>autoMemoryReclaim=gradual</code></td><td>Linux 釋放 page 後逐步把 RAM 還給 Windows</td><td>VmmemWSL 永遠停在歷史高水位</td></tr><tr><td><code>sparseVhd=true</code></td><td>ext4 vhdx 變 sparse 格式，刪檔可縮</td><td>vhdx 只長不縮，磁碟用久越腫</td></tr></tbody></table><p><code>autoMemoryReclaim</code> 三個選項：</p><ul><li><code>disabled</code>：不還（舊預設）</li><li><code>gradual</code>：慢慢還，保留 page cache（<strong>推薦</strong>）</li><li><code>dropcache</code>：激進還，連 page cache 也丟，下次讀檔要重抓 disk</li></ul><hr/><h2>8. 踩到的坑 — 放錯 section 會被忽略</h2><p>第一次設定我把 <code>autoMemoryReclaim</code> 跟 <code>sparseVhd</code> 放在 <code>[wsl2]</code> 底下，重啟 WSL 時 PowerShell 印：</p><pre><code class="language-text">wsl: wsl2.autoMemoryReclaim:C:\Users\rayhsu\.wslconfig 中不明的按鍵 &#x27;17&#x27;
+wsl: wsl2.sparseVhd:C:\Users\rayhsu\.wslconfig 中不明的按鍵 &#x27;20&#x27;
+</code></pre><p>訊息拆解：</p><ul><li><code>wsl2.autoMemoryReclaim</code> → 在 <code>[wsl2]</code> section 找這個 key</li><li><code>中不明的按鍵</code> → 中文翻譯怪：意思是「不認得這個 key」（key 被翻成「按鍵」）</li><li><code>&#x27;17&#x27;</code> / <code>&#x27;20&#x27;</code> → <strong>是 <code>.wslconfig</code> 的行號</strong>，剛好對到那兩行</li></ul><p><strong>修正</strong>：把這兩個 key 移到 <code>[experimental]</code> section。</p><pre><code class="language-diff"> [wsl2]
+ memory=8GB
+ swap=4GB
+ processors=8
+ localhostForwarding=true
+-autoMemoryReclaim=gradual
+-sparseVhd=true
++
++[experimental]
++autoMemoryReclaim=gradual
++sparseVhd=true
+</code></pre><blockquote><p>這兩個功能在 WSL 還屬於「實驗性」，Microsoft 要求放 <code>[experimental]</code> 底下。</p></blockquote><hr/><h2>9. <code>.wslconfig</code> 放在哪？兩個概念分清楚</h2><table><thead><tr><th>檔案</th><th>位置</th><th>何時讀</th><th>範圍</th></tr></thead><tbody><tr><td><strong><code>.wslconfig</code></strong></td><td>Windows <code>%UserProfile%\.wslconfig</code>（= <code>C:\Users\&lt;user&gt;\.wslconfig</code>）</td><td>Linux VM <strong>啟動前</strong>，由 Windows 上的 WSL 服務讀</td><td>全域（所有 distro）</td></tr><tr><td><strong><code>/etc/wsl.conf</code></strong></td><td>Linux 內 <code>/etc/wsl.conf</code></td><td>Linux 已經開機後</td><td>該 distro 限定</td></tr></tbody></table><p><code>memory=8GB</code> 這種設定是「<strong>Hyper-V 要分配給 VM 多少資源</strong>」 → Linux 還沒開機之前 Windows 就要決定 → 必須在 Windows host 上。</p><p><strong>從 WSL 寫和從 Windows 寫是同一個檔</strong>：</p><pre><code class="language-text">Windows: C:\Users\rayhsu\.wslconfig          ┐
+                                              ├─ 同一個檔案，兩個視角
+WSL:     /mnt/c/Users/rayhsu/.wslconfig      ┘
+</code></pre><p><code>/mnt/c/</code> 是 WSL 自動掛載的 Windows C 槽橋接點。</p><hr/><h2>10. 驗證清單</h2><h3>不用重啟就能驗</h3><pre><code class="language-bash"># A. 檔案有沒有寫對
+cat /mnt/c/Users/&lt;user&gt;/.wslconfig
+
+# B. memory cap 有沒有吃到（找 Mem total 應該 ~7.8 Gi）
+free -h
+
+# C. processors cap 有沒有吃到（應該 = 8）
+nproc
+
+# D. ini 語法自驗（Python configparser）
+python3 -c &quot;
+import configparser
+c = configparser.ConfigParser()
+c.read(&#x27;/mnt/c/Users/&lt;user&gt;/.wslconfig&#x27;)
+for s in c.sections():
+    print(f&#x27;[{s}]&#x27;)
+    for k, v in c.items(s):
+        print(f&#x27;  {k} = {v}&#x27;)
+&quot;
+</code></pre><h3>需要 <code>wsl --shutdown</code> 重啟後才能驗</h3><pre><code class="language-bash"># E. [experimental] section 有沒有被認得（重點）
+#    重啟後 PowerShell 跑 wsl 進來，不應該再印「不明的按鍵」warning
+wsl.exe -e true 2&gt;&amp;1
+# 預期輸出：空白
+</code></pre><pre><code class="language-powershell"># F. sparseVhd 有沒有真的 sparse
+#    比較 Windows 端 vhdx 實體大小 vs Linux 內部 used
+Get-ChildItem &#x27;C:\Users\&lt;user&gt;\AppData\Local\wsl\&lt;guid&gt;\ext4.vhdx&#x27; |
+    Select-Object Name, @{N=&#x27;GB&#x27;;E={[math]::Round($_.Length/1GB,2)}}
+</code></pre><pre><code class="language-text"># G. autoMemoryReclaim 行為
+#    跑一波吃 RAM 的工作後，過 5~10 分鐘，Windows Task Manager 看 VmmemWSL 應緩降
+#    （無法瞬間驗，要實際 workload）
+</code></pre><h3>實際驗證結果</h3><table><thead><tr><th>#</th><th>檢查</th><th>結果</th></tr></thead><tbody><tr><td>A</td><td><code>.wslconfig</code> 內容、行數</td><td>✓ 879 bytes</td></tr><tr><td>B</td><td><code>Mem total = 7.8 Gi</code></td><td>✓</td></tr><tr><td>C</td><td><code>nproc = 8</code></td><td>✓</td></tr><tr><td>D</td><td>ini 自驗：兩個 section + 6 個 key 全 parse 通過</td><td>✓</td></tr><tr><td><strong>E</strong></td><td><strong><code>wsl.exe -e true</code> stderr 完全空白</strong></td><td>✓✓（最關鍵）</td></tr><tr><td>F</td><td>Linux used 31 GB vs vhdx 35.16 GB（差 4 GB metadata）</td><td>✓</td></tr><tr><td>G</td><td>autoMemoryReclaim 行為</td><td>⏳ 待後續觀察</td></tr></tbody></table><hr/><h2>11. 心智模型</h2><pre><code class="language-text">Windows 16GB RAM
+       │
+       ├── Windows + Chrome + Rider + Teams …  (~5~7 GB)
+       │
+       └── WSL2 VM (cap = 8GB) ─┐
+                  │             ├ Linux kernel ~400 MB
+                  │             ├ claude session A (~700 MB)
+                  │             ├ claude session B (~500 MB)
+                  │             ├ MCP servers (~200 MB × N)
+                  │             ├ bun dev / build
+                  │             └ swap (4GB, vhdx in %TEMP%)
+                  │
+                  └─[gradual reclaim]→ 閒置時慢慢歸還
+</code></pre><p><strong>沒設這份 config 之前</strong>：最後那條 reclaim 箭頭不存在 → 高水位永遠不下來，這就是 89% 的成因。</p><hr/><h2>12. 養成的好習慣</h2><ul><li>用完 <code>/exit</code> 收掉 claude session，不要把終端機留著</li><li>不要 4 個 session 同時開 <code>--effort=max</code>；max 模式吃 CPU 又拖長 session 自然吃更多 heap</li><li>不用的 MCP server 在 <code>~/.claude.json</code> 或專案 <code>settings.json</code> 裡關掉（Azure MCP 在非 Azure 專案就關）</li><li>定期 <code>wsl --shutdown</code> 重置 VM</li><li>Windows Task Manager 釘住「記憶體」欄位排序，VmmemWSL 飆超過 cap 一半就該收 session 了</li></ul><hr/><h2>13. 補充：常用診斷指令</h2><pre><code class="language-bash"># 看哪個 process 吃最多記憶體
+ps aux --sort=-%mem | head -10
+
+# 看所有 claude 進程 + RSS 加總
+ps -o rss= -C claude | awk &#x27;{sum+=$1} END {printf &quot;%.0f MB across %d procs\n&quot;, sum/1024, NR}&#x27;
+
+# 看 VM uptime（確認是新啟動的 VM 還是舊的）
+uptime
+
+# 找 vhdx 實體位置
+find /mnt/c/Users/&lt;user&gt;/AppData/Local -maxdepth 5 -name &quot;ext4.vhdx&quot; 2&gt;/dev/null
+
+# WSL 版本（autoMemoryReclaim 需要 0.66.1+，sparseVhd 需要 1.0+）
+wsl.exe --version
+</code></pre><pre><code class="language-powershell"># Windows 端：強制重置 WSL VM（釋放 VmmemWSL 回 Windows）
+wsl --shutdown
+
+# 看目前哪些 distro 在跑
+wsl --list --running
+</code></pre><hr/><h2>14. 參考資料</h2><ul><li><a href="https://learn.microsoft.com/zh-tw/windows/wsl/wsl-config">WSL <code>.wslconfig</code> 官方文件</a></li><li><a href="https://github.com/microsoft/WSL/releases"><code>autoMemoryReclaim</code> 發布筆記（WSL 0.66.1）</a></li><li><a href="https://learn.microsoft.com/zh-tw/windows/wsl/disk-space">Sparse VHD support in WSL</a></li></ul><hr/><p><em>記錄日期：2026-05-29 / 環境：Windows 11 build 26200, WSL 2.6.3.0, Ubuntu 24.04</em></p>]]></content:encoded>
+        </item>
         <item>
             <title><![CDATA[使用 Lens IDE 管理 Azure K8s]]></title>
             <link>https://reantoilpc.github.io/blog/2023-03-25-lens-with-k8s</link>
