@@ -13,6 +13,7 @@
   --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang TC',
     'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
   --font-mono: ui-monospace, 'SF Mono', 'Cascadia Code', 'JetBrains Mono', Menlo, Consolas, monospace;
+  --font-display: 'Space Grotesk Variable', var(--font-sans);
 }
 .dark {
   --bg: #0b0d12;
@@ -112,3 +113,6 @@ a { color: inherit; text-decoration: none; }
 .prose table { width: 100%; border-collapse: collapse; margin: 1.2rem 0; font-size: .92em; display: block; overflow-x: auto; }
 .prose th, .prose td { border: 1px solid var(--border); padding: .5rem .7rem; text-align: left; }
 .prose th { background: var(--surface); }
+
+/* display typeface for headings + wordmark (Latin glyphs; CJK falls back to system stack) */
+h1, h2, h3, .wordmark, .section-title { font-family: var(--font-display); }
