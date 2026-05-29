@@ -1,0 +1,35 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import PostCard from '../../../components/PostCard.astro';
+import BlogSidebar from '../../../components/BlogSidebar.astro';
+import { getPublishedPosts, getPostSlug } from '../../../utils';
+import { CATEGORIES } from '../../../categories';
+
+export async function getStaticPaths() {
+  const posts = await getPublishedPosts('zh-TW');
+  return CATEGORIES
+    .map((c) => ({
+      category: c,
+      posts: posts.filter((p) => p.data.category === c.name),
+    }))
+    .filter((g) => g.posts.length > 0)
+    .map((g) => ({
+      params: { category: g.category.slug },
+      props: { name: g.category.name, posts: g.posts },
+    }));
+}
+const { name, posts } = Astro.props;
+---
+<BaseLayout title={`${name} — Ray Hsu`} description={`分類 ${name} 的文章`} wide>
+  <div class="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_15rem]">
+    <div>
+      <h1 class="section-title mb-5">{name}</h1>
+      <div class="space-y-3">
+        {posts.map((p) => (
+          <PostCard href={`/blog/${getPostSlug(p)}`} title={p.data.title} pubDate={p.data.pubDate} tags={p.data.tags} description={p.data.description} />
+        ))}
+      </div>
+    </div>
+    <BlogSidebar />
+  </div>
+</BaseLayout>
