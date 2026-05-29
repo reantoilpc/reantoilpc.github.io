@@ -122,7 +122,9 @@ a { color: inherit; text-decoration: none; }
 .prose th { background: var(--surface); }
 
 /* display typeface for headings + wordmark (Latin glyphs; CJK falls back to system stack) */
-h1, h2, h3, .wordmark, .section-title { font-family: var(--font-display); }
+/* Display font reserved for the Latin brand wordmark only; everything else uses
+   Noto Sans TC so headings and body read as one cohesive typeface (no Latin/CJK mix). */
+.wordmark { font-family: var(--font-display); }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
