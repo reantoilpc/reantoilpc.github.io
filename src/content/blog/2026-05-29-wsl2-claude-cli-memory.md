@@ -7,7 +7,7 @@ category: Tools
 lang: zh-TW
 ---
 
-## TL;DR
+## 重點摘要
 
 在 Windows 11 用 WSL2 Ubuntu 跑 Claude CLI，Task Manager 看到 `VmmemWSL` 一路漲、最後整機卡死。**真正根因**不是 Claude CLI 漏記憶體，而是三件事疊加：
 
