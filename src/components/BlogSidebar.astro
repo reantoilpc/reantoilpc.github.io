@@ -1,0 +1,41 @@
+---
+import { getPublishedPosts, getCategoryCounts, getArchive } from '../utils';
+const posts = await getPublishedPosts('zh-TW');
+const categories = getCategoryCounts(posts);
+const archive = getArchive(posts);
+---
+<aside class="space-y-6">
+  <div class="card">
+    <h2 class="section-title mb-3" style="font-size:1rem">文章分類</h2>
+    <ul>
+      {categories.map((c, i) => (
+        <li
+          class="flex items-center justify-between py-2"
+          style={i === 0 ? '' : 'border-top:1px solid var(--border)'}
+        >
+          <a href={`/blog/category/${c.slug}`} class="transition-colors hover:text-[var(--accent)]">{c.name}</a>
+          <span class="meta">{c.count}</span>
+        </li>
+      ))}
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2 class="section-title mb-3" style="font-size:1rem">每月彙整</h2>
+    <div class="space-y-3">
+      {archive.map((y) => (
+        <div>
+          <p class="mb-1 text-sm font-bold">{y.year}</p>
+          <ul>
+            {y.months.map((m) => (
+              <li class="flex items-center justify-between py-1.5">
+                <a href={`/blog/archive/${m.ym}`} class="text-sm transition-colors hover:text-[var(--accent)]">{m.label}</a>
+                <span class="meta">{m.count}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  </div>
+</aside>

@@ -1,18 +1,22 @@
 ---
-import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PostCard from '../../components/PostCard.astro';
+import BlogSidebar from '../../components/BlogSidebar.astro';
 import Search from '../../components/Search.astro';
-import { getPostSlug } from '../../utils';
-const posts = (await getCollection('blog', ({ data }) => data.lang === 'zh-TW' && !data.draft))
-  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+import { getPublishedPosts, getPostSlug } from '../../utils';
+const posts = await getPublishedPosts('zh-TW');
 ---
-<BaseLayout title="文章 — Ray Hsu" description="Ray Hsu 的技術文章">
-  <h1 class="section-title mb-5">文章</h1>
-  <div id="search" class="mb-8"><Search /></div>
-  <div class="space-y-3">
-    {posts.map((p) => (
-      <PostCard href={`/blog/${getPostSlug(p)}`} title={p.data.title} pubDate={p.data.pubDate} tags={p.data.tags} description={p.data.description} />
-    ))}
+<BaseLayout title="文章 — Ray Hsu" description="Ray Hsu 的技術文章" wide>
+  <div class="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_15rem]">
+    <div>
+      <h1 class="section-title mb-5">文章</h1>
+      <div id="search" class="mb-8"><Search /></div>
+      <div class="space-y-3">
+        {posts.map((p) => (
+          <PostCard href={`/blog/${getPostSlug(p)}`} title={p.data.title} pubDate={p.data.pubDate} tags={p.data.tags} description={p.data.description} />
+        ))}
+      </div>
+    </div>
+    <BlogSidebar />
   </div>
 </BaseLayout>
