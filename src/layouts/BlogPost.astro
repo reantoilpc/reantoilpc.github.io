@@ -1,0 +1,23 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import { getLangFromUrl, useTranslations } from '../i18n/utils';
+interface Props { title: string; description: string; pubDate: Date; tags: string[]; minutes: number; }
+const { title, description, pubDate, tags, minutes } = Astro.props;
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const dateStr = pubDate.toISOString().slice(0, 10);
+---
+<BaseLayout title={`${title} — Ray Hsu`} description={description}>
+  <article class="prose">
+    <h1 class="text-3xl font-bold mb-2">{title}</h1>
+    <p class="text-sm mb-6" style="color:var(--muted)">
+      {t('blog.publishedOn')} {dateStr} · {minutes} {t('blog.readingTime')}
+    </p>
+    <slot />
+    {tags.length > 0 && (
+      <div class="mt-8 flex flex-wrap gap-2">
+        {tags.map((tag) => <a href={`/tags/${tag}`} class="text-xs rounded-full border px-3 py-1" style="border-color:var(--border)">#{tag}</a>)}
+      </div>
+    )}
+  </article>
+</BaseLayout>

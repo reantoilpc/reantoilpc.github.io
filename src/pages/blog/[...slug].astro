@@ -1,0 +1,24 @@
+---
+import { getCollection, render } from 'astro:content';
+import BlogPost from '../../layouts/BlogPost.astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog', ({ data }) => data.lang === 'zh-TW' && !data.draft);
+  // Astro 6's glob loader slugifies `entry.id` (lowercases, strips dots), which would
+  // rename e.g. `...Enums.NET` -> `...enumsnet` and break the preserved blog URLs.
+  // Derive the slug from the original filename (entry.filePath) so URLs equal filenames.
+  return posts.map((post) => ({
+    params: { slug: post.filePath.split('/').pop().replace(/\.(md|mdx)$/, '') },
+    props: { post },
+  }));
+}
+const { post } = Astro.props;
+const { Content, headings } = await render(post);
+// 中文以字元估更準，這裡簡化
+const words = post.body?.length ? post.body.trim().split(/\s+/).length : 0;
+const minutes = Math.max(1, Math.round(words / 350));
+---
+<BlogPost title={post.data.title} description={post.data.description}
+  pubDate={post.data.pubDate} tags={post.data.tags} minutes={minutes}>
+  <Content />
+</BlogPost>
