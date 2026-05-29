@@ -3,6 +3,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
+  color-scheme: light;
   --bg: #ffffff;
   --surface: #f7f8fb;
   --fg: #16181d;
@@ -16,6 +17,7 @@
   --font-display: 'Space Grotesk Variable', var(--font-sans);
 }
 .dark {
+  color-scheme: dark;
   --bg: #0b0d12;
   --surface: #13161d;
   --fg: #e7e9ee;
@@ -52,7 +54,7 @@ a { color: inherit; text-decoration: none; }
 .navlink[data-active] { color: var(--fg); font-weight: 600; border-bottom-color: var(--accent); }
 .icon-btn {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 34px; height: 34px; border-radius: 8px; color: var(--muted); transition: .15s ease;
+  width: 40px; height: 40px; border-radius: 8px; color: var(--muted); transition: .15s ease;
 }
 .icon-btn:hover { color: var(--fg); background: color-mix(in srgb, var(--fg) 8%, transparent); }
 
@@ -86,7 +88,7 @@ a { color: inherit; text-decoration: none; }
 .section-title { font-size: 1.35rem; font-weight: 700; letter-spacing: -.01em; display: flex; align-items: center; gap: .6rem; }
 .section-title::before {
   content: ""; width: .35rem; height: 1.15rem; border-radius: 3px;
-  background: linear-gradient(var(--accent), var(--accent-2));
+  background: var(--accent);
 }
 
 /* avatar */
@@ -116,3 +118,9 @@ a { color: inherit; text-decoration: none; }
 
 /* display typeface for headings + wordmark (Latin glyphs; CJK falls back to system stack) */
 h1, h2, h3, .wordmark, .section-title { font-family: var(--font-display); }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+  .card:hover { transform: none; }
+}
