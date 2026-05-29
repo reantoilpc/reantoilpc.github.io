@@ -4,12 +4,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import PostCard from '../components/PostCard.astro';
 import { getPostSlug } from '../utils';
 import { SITE_TITLE, TAGLINE, SITE_DESCRIPTION, GITHUB_URL } from '../consts';
+import { Image } from 'astro:assets';
+import avatar from '../assets/avatar.png';
 const recent = (await getCollection('blog', ({ data }) => data.lang === 'zh-TW' && !data.draft))
   .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()).slice(0, 5);
 ---
 <BaseLayout title={`${SITE_TITLE} — ${TAGLINE['zh-TW']}`} description={SITE_DESCRIPTION['zh-TW']}>
   <section class="flex items-center gap-5 pt-4">
-    <img src="https://github.com/reantoilpc.png" alt="Ray Hsu" width="72" height="72" class="avatar" />
+    <Image src={avatar} alt="Ray Hsu" width={144} height={144} class="avatar" />
     <div>
       <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">{SITE_TITLE}</h1>
       <p class="meta mt-1.5" style="font-size:.82rem;color:var(--accent)">{TAGLINE['zh-TW']}</p>
