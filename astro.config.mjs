@@ -13,6 +13,13 @@ export default defineConfig({
     locales: ['zh-TW', 'en'],
     routing: { prefixDefaultLocale: false },
   },
+  redirects: {
+    '/docs/Git/Give-Up-Reset-Commit': '/notes/git/give-up-reset-commit',
+    '/docs/PowerShell/show-list-installeds-software': '/notes/powershell/show-list-installed-software',
+    '/docs/Shortcut/rider-shortcut': '/notes/shortcut/rider-shortcut',
+    '/docs/Dotnet/dotnet-commit': '/notes/dotnet/dotnet-commit',
+    '/docs/intro': '/notes',
+  },
   integrations: [
     expressiveCode({ themes: ['github-dark', 'github-light'], styleOverrides: { borderRadius: '0.5rem' } }),
     mdx(),

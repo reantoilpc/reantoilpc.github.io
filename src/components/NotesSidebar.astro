@@ -1,0 +1,28 @@
+---
+import { getCollection } from 'astro:content';
+const notes = await getCollection('notes', ({ data }) => data.lang === 'zh-TW');
+const byCat = new Map();
+for (const n of notes) {
+  if (!byCat.has(n.data.category)) byCat.set(n.data.category, []);
+  byCat.get(n.data.category).push(n);
+}
+const cats = [...byCat.entries()].sort((a, b) =>
+  Math.min(...a[1].map((n) => n.data.order)) - Math.min(...b[1].map((n) => n.data.order)));
+const current = Astro.url.pathname;
+---
+<aside class="text-sm">
+  {cats.map(([cat, items]) => (
+    <div class="mb-4">
+      <p class="font-semibold mb-1">{cat}</p>
+      <ul class="space-y-1">
+        {items.map((n) => (
+          <li>
+            <a href={`/notes/${n.id}`}
+               class={`hover:text-[var(--accent)] ${current === `/notes/${n.id}` ? 'text-[var(--accent)] font-medium' : ''}`}
+               style={current === `/notes/${n.id}` ? '' : 'color:var(--muted)'}>{n.data.title}</a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  ))}
+</aside>
