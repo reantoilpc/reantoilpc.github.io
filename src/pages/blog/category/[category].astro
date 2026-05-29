@@ -23,6 +23,7 @@ const { name, posts } = Astro.props;
 <BaseLayout title={`${name} — Ray Hsu`} description={`分類 ${name} 的文章`} wide>
   <div class="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_15rem]">
     <div>
+      <p class="meta mb-1">分類</p>
       <h1 class="section-title mb-5">{name}</h1>
       <div class="space-y-3">
         {posts.map((p) => (
