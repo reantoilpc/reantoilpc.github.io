@@ -2,6 +2,7 @@
 import BaseLayout from './BaseLayout.astro';
 import BlogSidebar from '../components/BlogSidebar.astro';
 import TableOfContents from '../components/TableOfContents.astro';
+import BackToTop from '../components/BackToTop.astro';
 import { getLangFromUrl, useTranslations } from '../i18n/utils';
 import { slugForCategory } from '../categories';
 interface Props { title: string; description: string; pubDate: Date; tags: string[]; minutes: number; category?: string; headings: { depth: number; slug: string; text: string }[]; }
@@ -32,4 +33,5 @@ const dateStr = pubDate.toISOString().slice(0, 10);
       <BlogSidebar sticky={false} />
     </div>
   </div>
+  <BackToTop />
 </BaseLayout>

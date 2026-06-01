@@ -1,0 +1,60 @@
+---
+import { getLangFromUrl } from '../i18n/utils';
+const lang = getLangFromUrl(Astro.url);
+const label = lang === 'en' ? 'Back to top' : '回到頂部';
+---
+<button id="back-to-top" type="button" class="back-to-top" aria-label={label} title={label}>
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M12 19V5" />
+    <path d="m5 12 7-7 7 7" />
+  </svg>
+</button>
+
+<style>
+  .back-to-top {
+    position: fixed;
+    right: 1.5rem;
+    bottom: 1.5rem;
+    z-index: 60;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    color: #fff;
+    background: var(--accent);
+    border: 1px solid color-mix(in srgb, var(--accent) 70%, #000);
+    box-shadow: 0 10px 28px -12px color-mix(in srgb, var(--accent) 70%, transparent);
+    opacity: 0;
+    transform: translateY(12px) scale(.92);
+    pointer-events: none;
+    transition: opacity .2s ease, transform .2s ease, background .15s ease;
+  }
+  .back-to-top[data-visible] {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+  }
+  .back-to-top:hover { background: var(--accent-2); }
+  @media (prefers-reduced-motion: reduce) {
+    .back-to-top { transition: opacity .15s ease; transform: none; }
+    .back-to-top[data-visible] { transform: none; }
+  }
+</style>
+
+<script>
+  const btn = document.getElementById('back-to-top');
+  if (btn) {
+    const toggle = () => {
+      if (window.scrollY > 400) btn.setAttribute('data-visible', '');
+      else btn.removeAttribute('data-visible');
+    };
+    toggle();
+    window.addEventListener('scroll', toggle, { passive: true });
+    btn.addEventListener('click', () => {
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+    });
+  }
+</script>
