@@ -2,6 +2,7 @@
 title: "列出電腦已安裝的軟體，匯出檔案"
 description: ""
 category: PowerShell
+tags: ["powershell", "windows", "cli"]
 order: 2
 created: 2026-05-29
 updated: 2026-05-29

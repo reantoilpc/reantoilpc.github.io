@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# 自動把「今天日期」寫進這次 commit 有變更的 notes 筆記 frontmatter 的 updated: 欄位。
+# 若 frontmatter 沒有 updated: 會自動補上。created: 請在新筆記手動填首次發佈日。
+# 啟用方式(每個 clone 跑一次): git config core.hooksPath scripts/git-hooks
+set -euo pipefail
+
+today=$(date +%F)
+changed=$(git diff --cached --name-only --diff-filter=ACM -- 'src/content/notes/' || true)
+[ -z "$changed" ] && exit 0
+
+while IFS= read -r f; do
+  [ -n "$f" ] || continue
+  case "$f" in
+    *.md) ;;
+    *) continue ;;
+  esac
+  [ -f "$f" ] || continue
+
+  awk -v today="$today" '
+    BEGIN { fm = 0; done = 0 }
+    /^---[[:space:]]*$/ {
+      fm++
+      if (fm == 2 && !done) { print "updated: " today; done = 1 }
+      print
+      next
+    }
+    fm == 1 && /^updated:/ { print "updated: " today; done = 1; next }
+    { print }
+  ' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
+
+  git add "$f"
+done <<< "$changed"
+
+exit 0

@@ -1,11 +1,36 @@
 ---
 import { getCollection, render } from 'astro:content';
 import NotesLayout from '../../layouts/NotesLayout.astro';
+
 export async function getStaticPaths() {
   const notes = await getCollection('notes', ({ data }) => data.lang === 'zh-TW');
-  return notes.map((n) => ({ params: { slug: n.id }, props: { note: n } }));
+  // 與側欄/索引相同的全站扁平順序:分類間照最小 order,分類內 order→updated
+  // (排序邏輯內聯在此 — Astro 的 getStaticPaths 抓不到 frontmatter 的外部 helper)
+  const byCat = new Map();
+  for (const n of notes) {
+    if (!byCat.has(n.data.category)) byCat.set(n.data.category, []);
+    byCat.get(n.data.category).push(n);
+  }
+  for (const items of byCat.values()) {
+    items.sort(
+      (a, b) =>
+        a.data.order - b.data.order ||
+        (b.data.updated?.valueOf() ?? 0) - (a.data.updated?.valueOf() ?? 0)
+    );
+  }
+  const flat = [...byCat.entries()]
+    .sort(
+      (a, b) => Math.min(...a[1].map((n) => n.data.order)) - Math.min(...b[1].map((n) => n.data.order))
+    )
+    .flatMap(([, items]) => items);
+  const toLink = (m) => (m ? { id: m.id, title: m.data.title } : null);
+  return flat.map((n, i) => ({
+    params: { slug: n.id },
+    props: { note: n, prev: toLink(flat[i - 1]), next: toLink(flat[i + 1]) },
+  }));
 }
-const { note } = Astro.props;
+
+const { note, prev, next } = Astro.props;
 const { Content, headings } = await render(note);
 ---
 <NotesLayout
@@ -13,5 +38,8 @@ const { Content, headings } = await render(note);
   description={note.data.description}
   category={note.data.category}
   updated={note.data.updated}
+  tags={note.data.tags}
   headings={headings}
+  prev={prev}
+  next={next}
 ><Content /></NotesLayout>

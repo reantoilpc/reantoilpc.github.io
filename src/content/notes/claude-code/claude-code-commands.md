@@ -2,6 +2,7 @@
 title: "Claude Code 內建指令白話速查"
 description: "用白話文與情境,完整整理 Claude Code 所有內建 slash 指令,並釐清內建指令、自訂指令、CLI 啟動參數的差別。"
 category: "Claude Code"
+tags: ["claude-code", "cli", "ai"]
 order: 5
 created: 2026-06-04
 updated: 2026-06-04

@@ -30,7 +30,15 @@ const cats = [...byCat.entries()]
       Math.min(...a.items.map((n) => n.data.order)) - Math.min(...b.items.map((n) => n.data.order))
   );
 
+// 標籤(跨分類):依出現次數多到少、再依名稱
+const tagCount = new Map();
+for (const n of notes) for (const t of n.data.tags) tagCount.set(t, (tagCount.get(t) ?? 0) + 1);
+const allTags = [...tagCount.entries()]
+  .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+  .map(([t]) => t);
+
 const fmt = (d) => (d ? d.toISOString().slice(0, 10) : '');
+const tagStr = (n) => n.data.tags.join(' ');
 ---
 <BaseLayout title="Notes — Ray Hsu" description="技術筆記知識庫" wide>
   <header class="mb-8">
@@ -38,33 +46,42 @@ const fmt = (d) => (d ? d.toISOString().slice(0, 10) : '');
     <p class="mt-2" style="color:var(--muted)">技術筆記知識庫 — 開發過程中累積的指令、設定與踩坑速查。</p>
   </header>
 
-  <div class="mb-12"><Search /></div>
+  <div class="mb-8"><Search /></div>
 
-  <section class="mb-12">
+  {allTags.length > 0 && (
+    <div class="mb-12 flex flex-wrap items-center gap-2" id="tagFilter">
+      <span class="meta mr-1">標籤篩選</span>
+      <button type="button" class="pill is-active" data-tag="*">全部</button>
+      {allTags.map((t) => <button type="button" class="pill" data-tag={t}>#{t}</button>)}
+    </div>
+  )}
+
+  <section class="mb-12" data-section="recent">
     <h2 class="section-title mb-4" style="font-size:1.2rem">最近更新</h2>
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {recent.map((n) => (
-        <a href={`/notes/${n.id}`} class="card">
+        <a href={`/notes/${n.id}`} class="card" data-note data-tags={tagStr(n)}>
           <span class="pill">{n.data.category}</span>
           <p class="mt-3 mb-1 font-semibold leading-snug">{n.data.title}</p>
           <span class="meta">更新於 {fmt(n.data.updated)}</span>
         </a>
       ))}
     </div>
+    <p class="meta mt-4 hidden" data-empty="recent">此標籤在最近更新中沒有筆記。</p>
   </section>
 
-  <section>
+  <section data-section="cats">
     <h2 class="section-title mb-4" style="font-size:1.2rem">依分類瀏覽</h2>
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {cats.map((c) => (
-        <div class="card">
+        <div class="card" data-cat-card>
           <p class="mb-3 flex items-center justify-between font-semibold">
             <span>{c.name}</span>
             <span class="meta">{c.items.length} 篇</span>
           </p>
           <ul class="space-y-1.5 text-sm">
             {c.items.map((n) => (
-              <li>
+              <li data-note data-tags={tagStr(n)}>
                 <a href={`/notes/${n.id}`} class="block transition-colors hover:text-[var(--accent)]" style="color:var(--muted)">{n.data.title}</a>
               </li>
             ))}
@@ -73,4 +90,48 @@ const fmt = (d) => (d ? d.toISOString().slice(0, 10) : '');
       ))}
     </div>
   </section>
+
+  <style>
+    #tagFilter .pill { cursor: pointer; background: transparent; }
+    #tagFilter .pill.is-active {
+      color: var(--accent);
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 10%, transparent);
+    }
+  </style>
+
+  <script is:inline>
+    (function () {
+      var bar = document.getElementById('tagFilter');
+      if (!bar) return;
+      var pills = [].slice.call(bar.querySelectorAll('[data-tag]'));
+      function apply(tag) {
+        pills.forEach(function (p) { p.classList.toggle('is-active', p.dataset.tag === tag); });
+        document.querySelectorAll('[data-note]').forEach(function (el) {
+          var ok = tag === '*' || (el.dataset.tags || '').split(' ').indexOf(tag) !== -1;
+          el.style.display = ok ? '' : 'none';
+        });
+        document.querySelectorAll('[data-cat-card]').forEach(function (card) {
+          var any = [].slice.call(card.querySelectorAll('[data-note]')).some(function (li) {
+            return li.style.display !== 'none';
+          });
+          card.style.display = any ? '' : 'none';
+        });
+        var recent = document.querySelector('[data-section="recent"]');
+        if (recent) {
+          var anyR = [].slice.call(recent.querySelectorAll('[data-note]')).some(function (el) {
+            return el.style.display !== 'none';
+          });
+          var msg = recent.querySelector('[data-empty="recent"]');
+          if (msg) msg.classList.toggle('hidden', anyR);
+        }
+      }
+      bar.addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-tag]');
+        if (btn) apply(btn.dataset.tag);
+      });
+      var initial = new URLSearchParams(location.search).get('tag');
+      if (initial && pills.some(function (p) { return p.dataset.tag === initial; })) apply(initial);
+    })();
+  </script>
 </BaseLayout>

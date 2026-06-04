@@ -2,6 +2,7 @@
 title: "dotnet 指令"
 description: ""
 category: Dotnet
+tags: ["dotnet", "nuget", "cli"]
 order: 4
 created: 2026-05-29
 updated: 2026-05-29
