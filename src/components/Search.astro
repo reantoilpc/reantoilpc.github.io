@@ -19,7 +19,9 @@ const t = useTranslations(getLangFromUrl(Astro.url));
   // Pagefind 產物只有在 build 後存在；dev 模式會找不到，屬正常。
   // is:inline 讓 Astro/Vite 不處理此 script，動態 import 才能指向部署後的執行期檔案。
   async function init() {
-    const { PagefindUI } = await import('/pagefind/pagefind-ui.js');
+    const mod = await import('/pagefind/pagefind-ui.js');
+    // pagefind-ui.js 以 window 全域註冊 PagefindUI(非具名匯出),兩種來源都相容
+    const PagefindUI = mod.PagefindUI || window.PagefindUI;
     new PagefindUI({ element: '#pagefind-search', showSubResults: true, showImages: false });
   }
   if (document.getElementById('pagefind-search')) init().catch(() => {});

@@ -22,6 +22,8 @@ const notes = defineCollection({
     description: z.string().default(''),
     category: z.string(),
     order: z.number().default(999),
+    created: z.coerce.date().optional(),
+    updated: z.coerce.date().optional(),
     lang: z.enum(['zh-TW', 'en']).default('zh-TW'),
   }),
 });

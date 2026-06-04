@@ -9,9 +9,10 @@ import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { getLangFromUrl } from '../i18n/utils';
-interface Props { title: string; description: string; image?: string; wide?: boolean; }
-const { title, description, image, wide = false } = Astro.props;
+interface Props { title: string; description: string; image?: string; wide?: boolean; widest?: boolean; }
+const { title, description, image, wide = false, widest = false } = Astro.props;
 const lang = getLangFromUrl(Astro.url);
+const maxW = widest ? 'max-w-7xl' : wide ? 'max-w-5xl' : 'max-w-3xl';
 ---
 <!doctype html>
 <html lang={lang}>
@@ -25,7 +26,7 @@ const lang = getLangFromUrl(Astro.url);
   </head>
   <body>
     <Header />
-    <main class={`mx-auto ${wide ? 'max-w-5xl' : 'max-w-3xl'} px-4 py-8`}><slot /></main>
+    <main class={`mx-auto ${maxW} px-4 py-8`}><slot /></main>
     <Footer />
   </body>
 </html>

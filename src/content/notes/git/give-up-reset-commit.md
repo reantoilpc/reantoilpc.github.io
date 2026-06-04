@@ -3,6 +3,8 @@ title: "在 hard 模式 Reset 了某個 Commit，如何救回來?"
 description: ""
 category: Git
 order: 1
+created: 2026-05-29
+updated: 2026-05-29
 lang: zh-TW
 ---
 

@@ -3,6 +3,8 @@ title: "Rider 快捷鍵"
 description: ""
 category: Shortcut
 order: 3
+created: 2026-05-29
+updated: 2026-05-29
 lang: zh-TW
 ---
 

@@ -1,14 +1,41 @@
 ---
 import BaseLayout from './BaseLayout.astro';
 import NotesSidebar from '../components/NotesSidebar.astro';
+import TableOfContents from '../components/TableOfContents.astro';
 import BackToTop from '../components/BackToTop.astro';
-interface Props { title: string; description: string; }
-const { title, description } = Astro.props;
+interface Props {
+  title: string;
+  description: string;
+  category?: string;
+  updated?: Date;
+  headings?: { depth: number; slug: string; text: string }[];
+}
+const { title, description, category, updated, headings = [] } = Astro.props;
+const showToc = headings.filter((h) => h.depth >= 2 && h.depth <= 3).length > 0;
+const updatedStr = updated ? updated.toISOString().slice(0, 10) : null;
+// 用完整字面字串(不要用 ${} 串接 class),否則 Tailwind 掃描器會把 md: 那段黏在 ${ 後面、判定為無效 token 而不生成
+const gridClass = showToc
+  ? 'grid grid-cols-1 gap-8 md:grid-cols-[240px_minmax(0,1fr)] xl:grid-cols-[240px_minmax(0,1fr)_15rem]'
+  : 'grid grid-cols-1 gap-8 md:grid-cols-[240px_minmax(0,1fr)]';
 ---
-<BaseLayout title={`${title} — Notes — Ray Hsu`} description={description}>
-  <div class="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-8">
+<BaseLayout title={`${title} — Notes — Ray Hsu`} description={description} widest>
+  <div class={gridClass}>
     <NotesSidebar />
-    <article class="prose"><h1 class="text-2xl font-bold mb-4">{title}</h1><slot /></article>
+    <article>
+      <header class="mb-8">
+        <nav class="meta mb-3" aria-label="breadcrumb">
+          <a href="/notes" class="link-accent">Notes</a>{category ? ` / ${category}` : ''}
+        </nav>
+        <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">{title}</h1>
+        {updatedStr && <p class="meta mt-2">更新於 {updatedStr}</p>}
+      </header>
+      <div class="prose"><slot /></div>
+    </article>
+    {showToc && (
+      <div class="hidden self-start xl:sticky xl:top-20 xl:block">
+        <TableOfContents headings={headings} />
+      </div>
+    )}
   </div>
   <BackToTop />
 </BaseLayout>
